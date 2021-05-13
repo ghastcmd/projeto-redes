@@ -4,8 +4,6 @@
 
 int main()
 {
-    // poker another;
-
     printf("Simple string\n");
 
     return 0;
