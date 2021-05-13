@@ -1,11 +1,8 @@
-#include <iostream>
-#include <string>
-#include <random>
-#include <time.h>
+#include "pch.hpp"
 
 using namespace std;
 
-const int numCards = 52;
+constexpr int numCards = 52;
 const string suits[4] = {"\u2660", "\u2661", "\u2662", "\u2663"};
 const string numeros[13] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
 
@@ -210,6 +207,8 @@ class Poker{
     }
 };
 
+#if defined(POKER_TEST)
+
 int main() {
   srand(time(NULL));
   int i;
@@ -217,3 +216,5 @@ int main() {
   p.newGame(5);
   p.newGame(5);
 }
+
+#endif
