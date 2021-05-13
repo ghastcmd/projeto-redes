@@ -2,14 +2,20 @@ src := src
 bin := bin
 deps := bin/deps
 
-
 target := bin/bin.out
 pch = src/pch.hpp
 gch = $(pch:.hpp=.hpp.gch)
 
 ifeq ($(OS),Windows_NT)
 	target := $(target:.out=.exe)
+	DOS := Windows
+	deps := $(subst /,\,$(deps))
+else
+	DOS := $(shell uname -s)
 endif
+
+help:
+	@echo $(deps)
 
 SS = @
 CC = g++
@@ -32,10 +38,21 @@ $(bin)/%.o: %.cpp
 	$(SS)$(CC) -MMD -MT $@ -MP -MF $(deps)/$*.d -c $< -o $@
 
 $(gch): $(pch)
-	$(SS)$(CC) $<
+	$(SS)$(CC) -c $< -o $@
 
-$(deps): | $(bin) ; $(SS)mkdir $@
+rec=
+ifeq ($(DOS),Linux)
+	rec := -r
+else
+	rec := 
+endif
 
-$(bin): ; $(SS)mkdir $@
+$(deps): ; $(SS)mkdir $(rec) $@
 
-clean: ; rm $(object) $(gch)
+clean:
+	$(SS)echo Cleaning bin folder
+	$(SS)rm -f $(object)
+
+clean_pch:
+	$(SS)echo Cleaning pch compiled file
+	$(SS)rm -f $(gch)
