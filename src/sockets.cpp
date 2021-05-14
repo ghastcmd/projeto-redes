@@ -20,19 +20,20 @@ client::client(const char *ip, unsigned int port)
     m_consocket.sin_port = htons(port);
 }
 
-void client::connc() const
+bool client::connect() const
 {
-    connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(struct sockaddr_in));
+    int ret = ::connect(m_socket, (sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+    return ret != -1;
 }
 
-void client::sendc(const char *msg)
+void client::send(const char *msg)
 {
-    send(m_socket, msg, strlen(msg), 0);
+    ::send(m_socket, msg, strlen(msg), 0);
 }
 
-int client::recc(char *buffer, int lenght)
+int client::recv(char *buffer, int lenght)
 {
-    return recv(m_socket, buffer, lenght, 0);
+    return ::recv(m_socket, buffer, lenght, 0);
 }
 
 client::~client()
@@ -69,28 +70,28 @@ server::~server()
 #endif
 }
 
-void server::bindc() const
+void server::bind() const
 {
-    bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+    ::bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
 }
 
-void server::listenc(const size_t max) const
+void server::listen(const size_t max) const
 {
     if (!max <= SOMAXCONN)
     {
         throw "Too big of ammount";
     }
-    listen(m_socket, max);
+    ::listen(m_socket, max);
 }
 
-void server::sendc(const char *msg) const
+void server::send(const char *msg) const
 {
-    send(m_socket, msg, strlen(msg), 0);
+    ::send(m_socket, msg, strlen(msg), 0);
 }
 
-int server::recc(char *buffer, int lenght) const
+int server::recv(char *buffer, int lenght) const
 {
-    return recv(m_socket, buffer, lenght, 0);
+    return ::recv(m_socket, buffer, lenght, 0);
 }
 
 }

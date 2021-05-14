@@ -16,11 +16,11 @@ namespace conn
         ~client();
 
         // initialize the connection with startup
-        void connc() const;
+        bool connect() const;
 
-        void sendc(const char *msg);
+        void send(const char *msg);
         /// @return The lenght of the output buffer
-        int recc(char *buffer, int lenght);
+        int recv(char *buffer, int lenght);
 
     private:
         socket_t m_socket;
@@ -32,12 +32,12 @@ namespace conn
         server(unsigned int port);
         ~server();
 
-        void bindc() const;
-        void listenc(size_t max) const;
+        void bind() const;
+        void listen(size_t max) const;
 
-        void sendc(const char *msg) const;
+        void send(const char *msg) const;
         /// @return The lenght of the output buffer
-        int recc(char *msg, int lenght) const;
+        int recv(char *msg, int lenght) const;
 
     private:
         socket_t m_socket;

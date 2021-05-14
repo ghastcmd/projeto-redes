@@ -4,7 +4,16 @@
 
 int main()
 {
-    printf("Simple string\n");
+    conn::client sclient("127.0.0.1", 2222);
+
+    if (!sclient.connect())
+    {
+        puts("couldn't connect to server");
+    }
+    else
+    {
+        sclient.send("simple message");
+    }
 
     return 0;
 }
