@@ -47,7 +47,40 @@ client::~client()
 
 server::server(unsigned int port)
 {
-    printf("%i\n", port);
+#if defined(Windows)
+    WSADATA wsa;
+    WSAStartup(MAKEWORD(2, 2), &wsa);
+#endif
+
+    m_socket = socket(AF_INET, SOCK_STREAM, 0);
+
+    m_consocket.sin_family = AF_INET;
+    m_consocket.sin_port = htons(port);
+    m_consocket.sin_addr.s_addr = htonl(INADDR_ANY);
+}
+
+server::~server()
+{
+#if defined(Windows)
+    closesocket(m_socket);
+    WSACleanup();
+#elif defined(Linux)    
+    close(m_socket);
+#endif
+}
+
+void server::bindc() const
+{
+    bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+}
+
+void server::listenc(const size_t max) const
+{
+    if (!max <= SOMAXCONN)
+    {
+        throw "Too big of ammount";
+    }
+    listen(m_socket, max);
 }
 
 }
