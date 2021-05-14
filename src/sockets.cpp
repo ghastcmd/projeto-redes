@@ -83,4 +83,14 @@ void server::listenc(const size_t max) const
     listen(m_socket, max);
 }
 
+void server::sendc(const char *msg) const
+{
+    send(m_socket, msg, strlen(msg), 0);
+}
+
+int server::recc(char *buffer, int lenght) const
+{
+    return recv(m_socket, buffer, lenght, 0);
+}
+
 }

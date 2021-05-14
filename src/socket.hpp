@@ -35,6 +35,10 @@ namespace conn
         void bindc() const;
         void listenc(size_t max) const;
 
+        void sendc(const char *msg) const;
+        /// @return The lenght of the output buffer
+        int recc(char *msg, int lenght) const;
+
     private:
         socket_t m_socket;
         struct sockaddr_in m_consocket;
