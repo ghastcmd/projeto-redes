@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <random>
+#include <cstring>
+
 #include <time.h>
 
 #if defined(__linux__)
@@ -14,6 +16,8 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#include <unistd.h>
 
 #elif defined(Windows)
 #include <winsock2.h>

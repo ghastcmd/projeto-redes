@@ -37,8 +37,12 @@ int client::recc(char *buffer, int lenght)
 
 client::~client()
 {
+#if defined(Windows)
     closesocket(m_socket);
     WSACleanup();
+#elif defined(Linux)
+    close(m_socket);
+#endif
 }
 
 server::server(unsigned int port)

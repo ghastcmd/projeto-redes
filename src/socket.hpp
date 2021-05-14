@@ -10,7 +10,7 @@ namespace conn
     #if defined(Windows)
         using socket_t = SOCKET;
     #elif defined(Linux)
-        using socket_t = socket_t;
+        using socket_t = int;
     #endif
 
         client(const char *ip, unsigned int port);
