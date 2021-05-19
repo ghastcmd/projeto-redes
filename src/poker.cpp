@@ -47,7 +47,7 @@ Deck::~Deck(){
     }
 }
 
-Hand::Hand(bool ordenado = false){
+Hand::Hand(bool ordenado){
     ord = ordenado;
     hand = NULL;
     tam = 0;

@@ -1,7 +1,9 @@
 #pragma once
 
-namespace conn
-{
+
+
+namespace conn {
+
 #if defined(Windows)
     using socket_t = size_t;
 #elif defined(Linux)

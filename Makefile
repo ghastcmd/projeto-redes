@@ -6,6 +6,8 @@ target = bin/bin.out
 pch = src/pch.hpp
 gch = $(pch:.hpp=.hpp.gch)
 
+flags = -Wall -Wextra -Werror -Wno-unused-variable -Wno-deprecated-declarations
+
 ifeq ($(OS),Windows_NT)
 	target := $(target:.out=.exe)
 	DOS := Windows
@@ -21,7 +23,7 @@ libs_inc = $(addprefix -l,$(libs))
 depends = $(patsubst %,$(deps)/%.d,$(basename $(notdir $(source))))
 
 SS = @
-CC = g++
+CC = clang++
 
 source = $(wildcard $(src)/*.cpp)
 object = $(patsubst %,$(bin)/%.o,$(notdir $(basename $(source))))
@@ -34,16 +36,16 @@ run: compile ; $(target)
 
 $(target): $(object)
 	$(SS)echo Compiling $@ from $^
-	$(SS)$(CC) $^ -o $@ $(libs_inc)
+	$(SS)$(CC) $(flags) $^ -o $@ $(libs_inc)
 
 vpath %.cpp $(src)
 $(bin)/%.o: %.cpp
 	$(SS)echo Compiling $< into $@
-	$(SS)$(CC) -MMD -MT $@ -MP -MF $(deps)/$*.d -c $< -o $@
+	$(SS)$(CC) -MMD -MT $@ -MP -MF $(deps)/$*.d $(flags) -c $< -o $@
 
 $(gch): $(pch)
 	$(SS)echo Compiling precompiled header
-	$(SS)$(CC) -c $< -o $@ $(libs_inc)
+	$(SS)$(CC) $(libs_inc) -c $< -o $@
 
 help:
 	@echo $(depends)

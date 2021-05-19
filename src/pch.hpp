@@ -3,13 +3,14 @@
 #include <random>
 #include <cstring>
 #include <thread>
+#include <functional>
 
 #include <time.h>
 
 #if defined(__linux__)
-#define Linux
+#define Linux true
 #elif defined(_WIN32)
-#define Windows
+#define Windows true
 #endif
 
 // sockets related includes

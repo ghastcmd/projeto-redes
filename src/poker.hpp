@@ -40,7 +40,7 @@ class Hand{
         bool ord;
         listCards *hand;
     public:
-        Hand(bool ordenado);
+        Hand(bool ordenado = false);
 
         void revN(int n);
 
