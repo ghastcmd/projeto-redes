@@ -4,8 +4,6 @@
 
 using namespace std;
 
-constexpr int numCards = 52;
-
 const int numCards = 52;
 const string suitsChar[4] = {"\u2660", "\u2661", "\u2662", "\u2663"};
 const string numeros[13] = {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
