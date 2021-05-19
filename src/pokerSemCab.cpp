@@ -482,6 +482,8 @@ class Poker{
     }
 };
 
+#if defined(POKER_CAB_TEST)
+
 int main() {
   srand(time(NULL));
   int i;
@@ -490,3 +492,5 @@ int main() {
   p.newGame();
   p.newGame();
 }
+
+#endif

@@ -2,6 +2,8 @@
 #include "socket.hpp"
 #include "poker.hpp"
 
+#if !defined(TEST)
+
 int main()
 {
     conn::client sclient("127.0.0.1", 2222);
@@ -17,3 +19,5 @@ int main()
 
     return 0;
 }
+
+#endif
