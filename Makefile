@@ -1,8 +1,8 @@
-src := src
-bin := bin
-deps := bin/deps
+src = src
+bin = bin
+deps = bin/deps
 
-target := bin/bin.out
+target = bin/bin.out
 pch = src/pch.hpp
 gch = $(pch:.hpp=.hpp.gch)
 
@@ -18,10 +18,7 @@ endif
 
 libs_inc = $(addprefix -l,$(libs))
 
-depends := $(patsubst %,$(dep_dir)/%.d,$(basename $(notdir $(source))))
-
-help:
-	@echo $(deps)
+depends = $(patsubst %,$(dep_dir)/%.d,$(basename $(notdir $(source))))
 
 SS = @
 CC = g++
@@ -33,8 +30,7 @@ build: ; $(SS)$(MAKE) -s --no-print-directory -j 4 compile
 
 compile: $(gch) $(target) | $(deps)
 
-run: compile
-	$(target)
+run: compile ; $(target)
 
 $(target): $(object)
 	$(SS)echo Compiling $@ from $^
