@@ -18,7 +18,7 @@ endif
 
 libs_inc = $(addprefix -l,$(libs))
 
-depends = $(patsubst %,$(dep_dir)/%.d,$(basename $(notdir $(source))))
+depends = $(patsubst %,$(deps)/%.d,$(basename $(notdir $(source))))
 
 SS = @
 CC = g++
@@ -43,7 +43,10 @@ $(bin)/%.o: %.cpp
 
 $(gch): $(pch)
 	$(SS)echo Compiling precompiled header
-	$(SS)$(CC) -c $< -o $@
+	$(SS)$(CC) -c $< -o $@ $(libs_inc)
+
+help:
+	@echo $(depends)
 
 $(depends):
 include $(depends)
