@@ -1,13 +1,12 @@
 #include "pch.hpp"
 #include "socket.hpp"
+
 namespace conn {
-    std::function<decltype(::connect)> s_connect = ::connect;
-    std::function<decltype(::send)>    s_send = ::send;
-    std::function<decltype(::recv)>    s_recv = ::recv;
-    std::function<decltype(::bind)>    s_bind = ::bind;
-    std::function<decltype(::listen)>  s_listen = ::listen;
-}
-namespace conn {
+std::function<decltype(::connect)> s_connect = ::connect;
+std::function<decltype(::send)>    s_send    = ::send;
+std::function<decltype(::recv)>    s_recv    = ::recv;
+std::function<decltype(::bind)>    s_bind    = ::bind;
+std::function<decltype(::listen)>  s_listen  = ::listen;
 
 client::client(const char *ip, unsigned int port)
 {

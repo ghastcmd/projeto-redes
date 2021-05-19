@@ -9,13 +9,13 @@ void server_func()
     conn::server serverInstance(2222);
 
     serverInstance.listen(1);
-    while (1)
-    {
-        char msg[64];
-        int lenght = serverInstance.recv(msg, sizeof(msg));
+    // while (1)
+    // {
+        // char msg[64];
+        // int lenght = serverInstance.recv(msg, sizeof(msg));
 
-        puts(msg);
-    }
+        // puts(msg);
+    // }
 }
 
 #if !defined(TEST)
