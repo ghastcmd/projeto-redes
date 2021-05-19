@@ -2,11 +2,20 @@
 #include "socket.hpp"
 #include "poker.hpp"
 
+void server_func()
+{
+    puts("just started the server function");
+
+    conn::server sockServer(2222);
+}
+
 #if !defined(TEST)
 
 int main()
 {
-    conn::client sclient("127.0.0.1", 2222);
+    conn::client sclient("localhost", 2222);
+
+    std::thread serverThread(server_func);
 
     if (!sclient.connect())
     {
@@ -16,6 +25,8 @@ int main()
     {
         sclient.send("simple message");
     }
+
+    serverThread.join();
 
     return 0;
 }

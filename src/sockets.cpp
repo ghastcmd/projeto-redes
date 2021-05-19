@@ -22,7 +22,7 @@ client::client(const char *ip, unsigned int port)
 
 bool client::connect() const
 {
-    int ret = ::connect(m_socket, (sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+    int ret = ::connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     return ret != -1;
 }
 
