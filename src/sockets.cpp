@@ -2,12 +2,6 @@
 #include "socket.hpp"
 
 namespace conn {
-decltype(&::connect) s_connect = ::connect;
-decltype(&::send)    s_send    = ::send;
-decltype(&::recv)    s_recv    = ::recv;
-decltype(&::bind)    s_bind    = ::bind;
-decltype(&::listen)  s_listen  = ::listen;
-decltype(&::accept)  s_accept  = ::accept;
 
 int basic_socket::get_error() const
 {
@@ -28,6 +22,11 @@ void basic_socket::print_errorg(const char* msg) const
     auto error_code = get_error();
     fprintf(stderr, ">>> %s, error code: %i\n", msg, error_code);
     if (m_print_error_str) puts(strerror(error_code)), puts("");
+}
+
+void basic_socket::send(const char* msg) const
+{
+    ::send(m_socket, msg, strlen(msg), 0);
 }
 
 basic_socket::~basic_socket()
@@ -100,9 +99,14 @@ client::client(const char *ip, unsigned int port)
 
 sock client::connect() const
 {
-    int ret = s_connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
+    int ret = ::connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     if (ret != 0) print_errorg("Could not connect to server with socket");
-    return {m_socket};
+    return ret != -1;
+}
+
+int client::recv(char *buffer, int lenght)
+{
+    return ::recv(m_socket, buffer, lenght, 0);
 }
 
 server::server(unsigned int port)
@@ -117,7 +121,7 @@ server::server(unsigned int port)
 
 void server::bind()
 {
-    int ret = s_bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
+    int ret = ::bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     if (ret != 0) print_errorg("Could not bind to the socket");
     m_bount = true;
 }
@@ -126,16 +130,23 @@ void server::listen(const size_t max) const
 {
     if (!m_bount) print_error("Need to bind first");
     if (!(max <= SOMAXCONN)) print_error("The max count number not supported");
-    int ret = s_listen(m_socket, max);
+    int ret = ::listen(m_socket, max);
     if (ret != 0) print_errorg("The server could not listen... ");
 }
 
 sock server::accept() const
 {
     socketlen_t csize = sizeof(m_consocket);
-    auto socket_fd = s_accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
-    if (socket_fd <= 0) print_errorg("Could not accept the incoming connection");
-    return {socket_fd};
+    auto ret = ::accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
+    if (ret <= 0) print_errorg("Could not accept the incoming connection");
+    return ret;
+}
+
+int server::recv(socket_t fd, char *buffer, int buffer_len) const
+{
+    auto ret = ::recv(fd, buffer, buffer_len, 0);
+    if (ret == -1) print_errorg("Could not get message from connection");
+    return ret;
 }
 
 }

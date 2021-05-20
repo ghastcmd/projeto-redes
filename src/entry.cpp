@@ -62,13 +62,13 @@ void server_func()
 
 int main(int argc, char *argv[])
 {
-    if (argc > 1 && !strcmp(argv[1], "server"))
+    if (argc > 1 && !strcmp(argv[1], "client"))
     {
-        server_func();
+        client_func();
     }
     else
     {
-        client_func();
+        server_func();
     }
 
     return 0;
