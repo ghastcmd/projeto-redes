@@ -2,22 +2,23 @@
 #include "socket.hpp"
 
 namespace conn {
-std::function<decltype(::connect)> s_connect = ::connect;
-std::function<decltype(::send)>    s_send    = ::send;
-std::function<decltype(::recv)>    s_recv    = ::recv;
-std::function<decltype(::bind)>    s_bind    = ::bind;
-std::function<decltype(::listen)>  s_listen  = ::listen;
+decltype(&::connect) s_connect = ::connect;
+decltype(&::send)    s_send    = ::send;
+decltype(&::recv)    s_recv    = ::recv;
+decltype(&::bind)    s_bind    = ::bind;
+decltype(&::listen)  s_listen  = ::listen;
+decltype(&::accept)  s_accept  = ::accept;
 
 client::client(const char *ip, unsigned int port)
 {
 #if defined(Windows)
-    // windows specific initialization of initial socket data
+    // Windows specific initialization of initial socket data
     WSADATA wsa;
     int wsa_ret = WSAStartup(MAKEWORD(2, 2), &wsa);
     if (wsa_ret != 0) puts("WSA Startup failed") ;
 #endif
 
-    // starting the socket with ip protocol and tcp connection
+    // Starting the socket with ip protocol and tcp connection
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket == INVALID_SOCKET) std::cout << "Invalid socket returned " << WSAGetLastError() << '\n';
 
@@ -64,6 +65,7 @@ client::~client()
 }
 
 server::server(unsigned int port)
+    : m_bount(false)
 {
 #if defined(Windows)
     WSADATA wsa;
@@ -87,18 +89,33 @@ server::~server()
 #endif
 }
 
-void server::bind() const
+int server::get_error() const
 {
-    s_bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+#if defined(Windows)
+    return WSAGetLastError();
+#elif defined(Linux)
+#endif
+}
+
+void server::bind()
+{
+    int ret = s_bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
+    if (ret != 0) throw "Could not bind to the socket", get_error();
+    m_bount = true;
 }
 
 void server::listen(const size_t max) const
 {
-    if (!(max <= SOMAXCONN))
-    {
-        throw "Too big of ammount";
-    }
-    s_listen(m_socket, max);
+    if (!m_bount) throw "Need to bind first";
+    if (!(max <= SOMAXCONN)) throw "Too big of count";
+    int ret = s_listen(m_socket, max);
+    if (ret != 0) throw "The server could not listen... ", get_error();
+}
+
+socket_t server::accept() const
+{
+    int addr_len = sizeof(m_consocket);
+    return s_accept(m_socket, (struct sockaddr*)&m_consocket, &addr_len);
 }
 
 void server::send(const char *msg) const
@@ -109,6 +126,11 @@ void server::send(const char *msg) const
 int server::recv(char *buffer, int lenght) const
 {
     return s_recv(m_socket, buffer, lenght, 0);
+}
+
+int server::recv(socket_t fd, char *buffer, int buffer_len) const
+{
+    return s_recv(fd, buffer, buffer_len, 0);
 }
 
 }

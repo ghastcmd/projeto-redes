@@ -4,18 +4,22 @@
 
 void server_func()
 {
-    puts("just started the server function");
+    puts("Just started the server function");
 
     conn::server serverInstance(2222);
 
-    serverInstance.listen(1);
-    // while (1)
-    // {
-        // char msg[64];
-        // int lenght = serverInstance.recv(msg, sizeof(msg));
+    serverInstance.bind();
+    for (int i = 0; i < 5; i++)
+    {
+        serverInstance.listen(1);
+        auto sock = serverInstance.accept();
 
-        // puts(msg);
-    // }
+        char msg[23];
+        int lenght = serverInstance.recv(sock, msg, sizeof(msg));
+        msg[lenght] = '\0';
+
+        puts(msg);
+    }
 }
 
 #if !defined(TEST)

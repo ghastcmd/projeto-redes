@@ -13,7 +13,7 @@ namespace conn {
         client(const char *ip, unsigned int port);
         ~client();
 
-        // initialize the connection with startup
+        /// @brief Initializes the connection with the socket information
         bool connect() const;
 
         void send(const char *msg);
@@ -27,19 +27,29 @@ namespace conn {
 
     struct server
     {
+    private:
+        int get_error() const;
+    public:
         server(unsigned int port);
         ~server();
 
-        void bind() const;
+        void bind();
+        /// @brief Puts server in passive mode while it waits for client connection.
+        /// When the max size is raeched in buffer, the connection is refused.
         void listen(size_t max) const;
+
+        socket_t accept() const;
 
         void send(const char *msg) const;
         /// @return The lenght of the output buffer
         int recv(char *msg, int lenght) const;
 
+        int recv(socket_t fd, char *buffer, int buffer_size) const;
+
     private:
         socket_t m_socket;
         struct sockaddr_in m_consocket;
+        bool m_bount;
     };
 
 }
