@@ -2,13 +2,21 @@
 #include "socket.hpp"
 #include "poker.hpp"
 
+void dump_str(const char* str)
+{
+    while (char c = *str++)
+        printf("%02x ", c);
+    putchar('\n');
+}
+
 void client_func()
 {
     conn::client sclient("127.0.0.1", 2222);
 
     puts("Just initialized the client function");
 
-    if (sclient.connect())
+    auto sock = sclient.connect();
+    if (sock)
     {
         puts("Sending 6 different messages to server");
         sclient.send("simple message");
@@ -31,18 +39,21 @@ void server_func()
     serverInstance.bind();
     serverInstance.listen(1);
     std::string msg;
-    msg.reserve(24);
+    constexpr size_t packet_size = 25;
+    msg.reserve(packet_size);
     auto sock = serverInstance.accept();
     while (1)
     {
-        int lenght = serverInstance.recv(sock, &msg[0], 23);
-        msg[lenght] = '\0';
-        serverInstance.send(msg.c_str());
+        int lenght = serverInstance.recv(sock, &msg[0], packet_size);
+        if (lenght == 0) break;
+        msg[--lenght] = '\0';
+        // serverInstance.send(msg.c_str());
 
-        if (msg == "close")
+        if (!strncmp(msg.c_str(), "close", sizeof("close")))
         {
             break;
         }
+
         puts(msg.c_str());
     }
 }

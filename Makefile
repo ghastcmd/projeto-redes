@@ -16,7 +16,7 @@ ifeq ($(OS),Windows_NT)
 	DOS := Windows
 	deps := $(subst /,\,$(deps))
 	libs := Ws2_32
-	CC := $(addprefix clan,$(CC))
+	CC := clang++
 else
 	DOS := $(shell uname -s)
 	libs := pthread
@@ -49,7 +49,7 @@ $(bin)/%.o: %.cpp
 
 $(gch): $(pch)
 	$(SS)echo Compiling precompiled header
-	$(SS)$(CC) $(libs_inc) -c $< -o $@
+	$(SS)$(CC) -c $< -o $@
 
 $(depends):
 include $(depends)
