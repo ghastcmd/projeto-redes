@@ -9,8 +9,6 @@ decltype(&::bind)    s_bind    = ::bind;
 decltype(&::listen)  s_listen  = ::listen;
 decltype(&::accept)  s_accept  = ::accept;
 
-
-
 int basic_socket::get_error() const
 {
 #if defined(Windows)
@@ -19,45 +17,61 @@ int basic_socket::get_error() const
 #endif
 }
 
+void basic_socket::print_error(const char* msg) const
+{
+    fprintf(stderr, "%s\n", msg);
+}
+
+void basic_socket::print_errorg(const char* msg) const
+{
+    fprintf(stderr, "%s, error code: %i\n", msg, get_error());
+}
+
 void basic_socket::send(const char* msg) const
 {
     s_send(m_socket, msg, strlen(msg), 0);
 }
 
-client::client(const char *ip, unsigned int port)
+basic_socket::~basic_socket()
 {
 #if defined(Windows)
-    // Windows specific initialization of initial socket data
+    closesocket(m_socket);
+    WSACleanup();
+#elif defined(Linux)    
+    close(m_socket);
+#endif
+}
+
+void basic_socket::wsa_startup() const
+{
+#if defined(Windows)
     WSADATA wsa;
     int wsa_ret = WSAStartup(MAKEWORD(2, 2), &wsa);
-    if (wsa_ret != 0) throw "WSA Startup failed", get_error();
+    if (wsa_ret != 0)
+        print_error("WSA Startup failed");
 #endif
+}
 
+basic_socket::basic_socket()
+{
+    wsa_startup();
+}
+
+client::client(const char *ip, unsigned int port)
+{
     // Starting the socket with ip protocol and tcp connection
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (m_socket == INVALID_SOCKET) throw "Invalid socket returned ", get_error();
+    if (m_socket == INVALID_SOCKET)
+        print_errorg("Invalid socket returned");
 
-#if defined(Windows)
     m_consocket.sin_addr.s_addr = inet_addr(ip);
-#elif defined(Linux)
-    m_consocket.sin_addr.s_addr = inet_addr(ip);
-#endif
-
-    if (m_consocket.sin_addr.s_addr == INADDR_NONE) puts("Invalid ip address, none");
-    else if (m_consocket.sin_addr.s_addr == INADDR_ANY) puts("Invalid ip address, any");
+    if (m_consocket.sin_addr.s_addr == INADDR_NONE)
+        print_error("Invalid ip address, none");
+    else if (m_consocket.sin_addr.s_addr == INADDR_ANY)
+        print_error("Invalid ip address, any");
 
     m_consocket.sin_family = AF_INET;
     m_consocket.sin_port = htons(port);
-}
-
-client::~client()
-{
-#if defined(Windows)
-    int sockResult = closesocket(m_socket);
-    WSACleanup();
-#elif defined(Linux)
-    close(m_socket);
-#endif
 }
 
 bool client::connect() const
@@ -74,11 +88,6 @@ int client::recv(char *buffer, int lenght)
 server::server(unsigned int port)
     : m_bount(false)
 {
-#if defined(Windows)
-    WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
-#endif
-
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
 
     m_consocket.sin_family = AF_INET;
@@ -86,29 +95,19 @@ server::server(unsigned int port)
     m_consocket.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
-server::~server()
-{
-#if defined(Windows)
-    closesocket(m_socket);
-    WSACleanup();
-#elif defined(Linux)    
-    close(m_socket);
-#endif
-}
-
 void server::bind()
 {
     int ret = s_bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(decltype(m_consocket)));
-    if (ret != 0) throw "Could not bind to the socket", get_error();
+    if (ret != 0) print_errorg("Could not bind to the socket");
     m_bount = true;
 }
 
 void server::listen(const size_t max) const
 {
-    if (!m_bount) throw "Need to bind first";
-    if (!(max <= SOMAXCONN)) throw "Too big of count";
+    if (!m_bount) print_error("Need to bind first");
+    if (!(max <= SOMAXCONN)) print_error("The max count number not supported");
     int ret = s_listen(m_socket, max);
-    if (ret != 0) throw "The server could not listen... ", get_error();
+    if (ret != 0) print_error("The server could not listen... ");
 }
 
 socket_t server::accept() const

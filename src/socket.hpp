@@ -10,8 +10,17 @@ namespace conn {
 
     struct basic_socket
     {
+        basic_socket();
+        ~basic_socket();
+
         int get_error() const;
+        void print_error(const char* msg) const;
+        void print_errorg(const char* msg) const;
         void send(const char* msg) const;
+        
+        /// @brief Used only on windows, it starts the WSA object
+        void wsa_startup() const;
+
     protected:
         socket_t m_socket;
         struct sockaddr_in m_consocket;
@@ -21,7 +30,6 @@ namespace conn {
     {
     public:
         client(const char *ip, unsigned int port);
-        ~client();
 
         /// @brief Initializes the connection with the socket information
         bool connect() const;
@@ -34,7 +42,6 @@ namespace conn {
     {
     public:
         server(unsigned int port);
-        ~server();
         /// @brief Binds the made socket to the socket protocol in SO
         void bind();
         /// @brief Puts server in passive mode while it waits for client connection.

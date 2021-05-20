@@ -7,10 +7,10 @@ void server_func()
     puts("Just started the server function");
 
     conn::server serverInstance(2222);
-
+    
     serverInstance.bind();
     serverInstance.listen(1);
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 1; i++)
     {
         auto sock = serverInstance.accept();
 
