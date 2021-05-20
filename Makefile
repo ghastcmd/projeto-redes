@@ -8,11 +8,15 @@ gch = $(pch:.hpp=.hpp.gch)
 
 flags = -Wall -Wextra -Werror -Wno-unused-variable -Wno-deprecated-declarations
 
+SS = @
+CC = g++
+
 ifeq ($(OS),Windows_NT)
 	target := $(target:.out=.exe)
 	DOS := Windows
 	deps := $(subst /,\,$(deps))
 	libs := Ws2_32
+	CC := $(addprefix clan,$(CC))
 else
 	DOS := $(shell uname -s)
 	libs := pthread
@@ -21,9 +25,6 @@ endif
 libs_inc = $(addprefix -l,$(libs))
 
 depends = $(patsubst %,$(deps)/%.d,$(basename $(notdir $(source))))
-
-SS = @
-CC = g++
 
 source = $(wildcard $(src)/*.cpp)
 object = $(patsubst %,$(bin)/%.o,$(notdir $(basename $(source))))
@@ -49,9 +50,6 @@ $(bin)/%.o: %.cpp
 $(gch): $(pch)
 	$(SS)echo Compiling precompiled header
 	$(SS)$(CC) $(libs_inc) -c $< -o $@
-
-help:
-	@echo $(depends)
 
 $(depends):
 include $(depends)
