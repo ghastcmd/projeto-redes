@@ -8,8 +8,13 @@ namespace conn {
     using socket_t = int;
 #endif
 
+    int get_error();
+
     struct client
     {
+    private:
+        int get_error() const;
+    public:
         client(const char *ip, unsigned int port);
         ~client();
 

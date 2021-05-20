@@ -9,18 +9,26 @@ decltype(&::bind)    s_bind    = ::bind;
 decltype(&::listen)  s_listen  = ::listen;
 decltype(&::accept)  s_accept  = ::accept;
 
+int get_error()
+{
+#if defined(Windows)
+    return WSAGetLastError();
+#elif defined(Linux)
+#endif
+}
+
 client::client(const char *ip, unsigned int port)
 {
 #if defined(Windows)
     // Windows specific initialization of initial socket data
     WSADATA wsa;
     int wsa_ret = WSAStartup(MAKEWORD(2, 2), &wsa);
-    if (wsa_ret != 0) puts("WSA Startup failed") ;
+    if (wsa_ret != 0) throw "WSA Startup failed", get_error();
 #endif
 
     // Starting the socket with ip protocol and tcp connection
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (m_socket == INVALID_SOCKET) std::cout << "Invalid socket returned " << WSAGetLastError() << '\n';
+    if (m_socket == INVALID_SOCKET) throw "Invalid socket returned ", get_error();
 
     // auto addr_val = inet_addr(ip);
 
@@ -37,6 +45,16 @@ client::client(const char *ip, unsigned int port)
     m_consocket.sin_port = htons(port);
 }
 
+client::~client()
+{
+#if defined(Windows)
+    int sockResult = closesocket(m_socket);
+    WSACleanup();
+#elif defined(Linux)
+    close(m_socket);
+#endif
+}
+
 bool client::connect() const
 {
     int ret = s_connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
@@ -51,17 +69,6 @@ void client::send(const char *msg)
 int client::recv(char *buffer, int lenght)
 {
     return s_recv(m_socket, buffer, lenght, 0);
-}
-
-client::~client()
-{
-#if defined(Windows)
-    int sockResult = closesocket(m_socket);
-    if (sockResult == SOCKET_ERROR) std::cout << "Socket closed with an error " << WSAGetLastError() << '\n';
-    WSACleanup();
-#elif defined(Linux)
-    close(m_socket);
-#endif
 }
 
 server::server(unsigned int port)
@@ -86,14 +93,6 @@ server::~server()
     WSACleanup();
 #elif defined(Linux)    
     close(m_socket);
-#endif
-}
-
-int server::get_error() const
-{
-#if defined(Windows)
-    return WSAGetLastError();
-#elif defined(Linux)
 #endif
 }
 

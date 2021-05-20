@@ -9,9 +9,9 @@ void server_func()
     conn::server serverInstance(2222);
 
     serverInstance.bind();
+    serverInstance.listen(1);
     for (int i = 0; i < 5; i++)
     {
-        serverInstance.listen(1);
         auto sock = serverInstance.accept();
 
         char msg[23];
@@ -19,6 +19,7 @@ void server_func()
         msg[lenght] = '\0';
 
         puts(msg);
+        puts("Just put the message into terminal");
     }
 }
 
@@ -37,6 +38,10 @@ int main()
     else
     {
         sclient.send("simple message");
+        sclient.send("Another simple message");
+        sclient.send(">>>>>>>>>>>>>> #!3213jidsa j09213421562dêewqewqe/SAD");
+        sclient.send(">ksksksks                         000 1");
+        sclient.send("               |          000 1");
     }
 
     serverThread.join();
