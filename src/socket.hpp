@@ -4,8 +4,10 @@ namespace conn {
 
 #if defined(Windows)
     using socket_t = size_t;
+    using socketlen_t = int;
 #elif defined(Linux)
     using socket_t = int;
+    using socketlen_t = unsigned int;
 #endif
 
     struct basic_socket
@@ -24,6 +26,8 @@ namespace conn {
     protected:
         socket_t m_socket;
         struct sockaddr_in m_consocket;
+    private:
+        bool m_print_error_str = false;
     };
 
     struct client : public basic_socket
@@ -31,7 +35,8 @@ namespace conn {
     public:
         client(const char *ip, unsigned int port);
 
-        /// @brief Initializes the connection with the socket information
+        /// @brief Initializes the connection with the socket information.
+        /// @return If the connection is stablished.
         bool connect() const;
 
         /// @return The lenght of the output buffer
@@ -42,13 +47,14 @@ namespace conn {
     {
     public:
         server(unsigned int port);
-        /// @brief Binds the made socket to the socket protocol in SO
+        /// @brief Binds the created socket to the socket protocol in SO kernel
         void bind();
         /// @brief Puts server in passive mode while it waits for client connection.
         /// When the max size is raeched in buffer, the connection is refused.
         void listen(size_t max) const;
 
-        /// @brief Used to accept the connectin from client
+        /// @brief Used to accept the connection from client.
+        /// Gets the first connection on the buffer to accept it's connection.
         socket_t accept() const;
 
         /// @brief Use the socket returned from accept() as file descriptor

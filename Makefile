@@ -15,7 +15,7 @@ ifeq ($(OS),Windows_NT)
 	libs := Ws2_32
 else
 	DOS := $(shell uname -s)
-	libs :=
+	libs := pthread
 endif
 
 libs_inc = $(addprefix -l,$(libs))
@@ -23,7 +23,7 @@ libs_inc = $(addprefix -l,$(libs))
 depends = $(patsubst %,$(deps)/%.d,$(basename $(notdir $(source))))
 
 SS = @
-CC = clang++
+CC = g++
 
 source = $(wildcard $(src)/*.cpp)
 object = $(patsubst %,$(bin)/%.o,$(notdir $(basename $(source))))
@@ -33,6 +33,9 @@ build: ; $(SS)$(MAKE) -s --no-print-directory -j 4 compile
 compile: $(gch) $(target) | $(deps)
 
 run: compile ; $(target)
+
+run_server: compile ; $(target) server
+run_client: compile ; $(target) client
 
 $(target): $(object)
 	$(SS)echo Compiling $@ from $^
@@ -55,7 +58,7 @@ include $(depends)
 
 rec=
 ifeq ($(DOS),Linux)
-	rec := -r
+	rec := -p
 else
 	rec := 
 endif
