@@ -9,12 +9,19 @@ decltype(&::bind)    s_bind    = ::bind;
 decltype(&::listen)  s_listen  = ::listen;
 decltype(&::accept)  s_accept  = ::accept;
 
-int get_error()
+
+
+int basic_socket::get_error() const
 {
 #if defined(Windows)
     return WSAGetLastError();
 #elif defined(Linux)
 #endif
+}
+
+void basic_socket::send(const char* msg) const
+{
+    s_send(m_socket, msg, strlen(msg), 0);
 }
 
 client::client(const char *ip, unsigned int port)
@@ -29,8 +36,6 @@ client::client(const char *ip, unsigned int port)
     // Starting the socket with ip protocol and tcp connection
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket == INVALID_SOCKET) throw "Invalid socket returned ", get_error();
-
-    // auto addr_val = inet_addr(ip);
 
 #if defined(Windows)
     m_consocket.sin_addr.s_addr = inet_addr(ip);
@@ -59,11 +64,6 @@ bool client::connect() const
 {
     int ret = s_connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     return ret != -1;
-}
-
-void client::send(const char *msg)
-{
-    s_send(m_socket, msg, strlen(msg), 0);
 }
 
 int client::recv(char *buffer, int lenght)
@@ -115,16 +115,6 @@ socket_t server::accept() const
 {
     int addr_len = sizeof(m_consocket);
     return s_accept(m_socket, (struct sockaddr*)&m_consocket, &addr_len);
-}
-
-void server::send(const char *msg) const
-{
-    s_send(m_socket, msg, strlen(msg), 0);
-}
-
-int server::recv(char *buffer, int lenght) const
-{
-    return s_recv(m_socket, buffer, lenght, 0);
 }
 
 int server::recv(socket_t fd, char *buffer, int buffer_len) const
