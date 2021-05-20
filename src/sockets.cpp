@@ -30,11 +30,6 @@ void basic_socket::print_errorg(const char* msg) const
     if (m_print_error_str) puts(strerror(error_code)), puts("");
 }
 
-void basic_socket::send(const char* msg) const
-{
-    s_send(m_socket, msg, strlen(msg), 0);
-}
-
 basic_socket::~basic_socket()
 {
 #if defined(Windows)
@@ -42,7 +37,7 @@ basic_socket::~basic_socket()
     WSACleanup();
 #elif defined(Linux)    
     m_print_error_str = true;
-    close(m_socket);
+    ::close(m_socket);
 #endif
 }
 
@@ -59,6 +54,31 @@ void basic_socket::wsa_startup() const
 basic_socket::basic_socket()
 {
     wsa_startup();
+}
+
+void sock::send(const char* msg) const
+{
+    s_send(m_sock_fd, msg, strlen(msg), 0);
+}
+
+int sock::recv(char* buffer, size_t packet_size) const
+{
+    return s_recv(m_sock_fd, buffer, packet_size, 0);
+}
+
+sock::sock(socket_t fd)
+    : m_sock_fd(fd)
+{
+
+}
+
+sock::~sock()
+{
+#if defined(Windows)
+    closesocket(m_sock_fd);
+#elif defined(Linux)
+    ::close(m_sock_fd);
+#endif
 }
 
 client::client(const char *ip, unsigned int port)
@@ -78,16 +98,11 @@ client::client(const char *ip, unsigned int port)
     m_consocket.sin_port = htons(port);
 }
 
-bool client::connect() const
+sock client::connect() const
 {
     int ret = s_connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     if (ret != 0) print_errorg("Could not connect to server with socket");
-    return ret != -1;
-}
-
-int client::recv(char *buffer, int lenght)
-{
-    return s_recv(m_socket, buffer, lenght, 0);
+    return {m_socket};
 }
 
 server::server(unsigned int port)
@@ -115,19 +130,12 @@ void server::listen(const size_t max) const
     if (ret != 0) print_errorg("The server could not listen... ");
 }
 
-socket_t server::accept() const
+sock server::accept() const
 {
     socketlen_t csize = sizeof(m_consocket);
-    auto ret = s_accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
-    if (ret <= 0) print_errorg("Could not accept the incoming connection");
-    return ret;
-}
-
-int server::recv(socket_t fd, char *buffer, int buffer_len) const
-{
-    auto ret = s_recv(fd, buffer, buffer_len, 0);
-    if (ret == -1) print_errorg("Could not get message from connection");
-    return ret;
+    auto socket_fd = s_accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
+    if (socket_fd <= 0) print_errorg("Could not accept the incoming connection");
+    return {socket_fd};
 }
 
 }

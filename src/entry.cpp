@@ -19,16 +19,16 @@ void client_func()
     if (sock)
     {
         puts("Sending 6 different messages to server");
-        sclient.send("simple message");
-        sclient.send("Another simple message");
-        sclient.send(">>>>>>>>>>>>>> #!3213jidsa j09213421562dêewqewqe/SAD");
-        sclient.send(">ksksksks                         000 1");
-        sclient.send("               |          000 1");
-        sclient.send("close");
+        sock.send("simple message");
+        sock.send("Another simple message");
+        sock.send(">>>>>>>>>>>>>> #!3213jidsa j09213421562dêewqewqe/SAD");
+        sock.send(">ksksksks                         000 1");
+        sock.send("               |          000 1");
+        sock.send("close");
     }
 
-    sclient.send("Thing to write");
-    sclient.send("close");
+    sock.send("Thing to write");
+    sock.send("close");
 }
 
 void server_func()
@@ -44,10 +44,10 @@ void server_func()
     auto sock = serverInstance.accept();
     while (1)
     {
-        int lenght = serverInstance.recv(sock, &msg[0], packet_size);
+        int lenght = sock.recv(&msg[0], packet_size);
         if (lenght == 0) break;
         msg[--lenght] = '\0';
-        // serverInstance.send(msg.c_str());
+        sock.send(msg.c_str());
 
         if (!strncmp(msg.c_str(), "close", sizeof("close")))
         {

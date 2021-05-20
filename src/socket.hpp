@@ -18,7 +18,6 @@ namespace conn {
         int get_error() const;
         void print_error(const char* msg) const;
         void print_errorg(const char* msg) const;
-        void send(const char* msg) const;
         
         /// @brief Used only on windows, it starts the WSA object
         void wsa_startup() const;
@@ -30,6 +29,21 @@ namespace conn {
         bool m_print_error_str = false;
     };
 
+    struct sock
+    {
+        sock(socket_t fd);
+        ~sock();
+
+        void send(const char *msg) const;
+        int recv(char* buffer, size_t packet_size) const;
+        
+        explicit operator bool() const { return m_sock_fd >= 0; };
+        bool operator !() const { return !bool(*this); }
+
+    private:
+        socket_t m_sock_fd;
+    };
+
     struct client : public basic_socket
     {
     public:
@@ -37,10 +51,7 @@ namespace conn {
 
         /// @brief Initializes the connection with the socket information.
         /// @return If the connection is stablished.
-        bool connect() const;
-
-        /// @return The lenght of the output buffer
-        int recv(char *buffer, int lenght);
+        sock connect() const;
     };
 
     struct server : public basic_socket
@@ -55,11 +66,7 @@ namespace conn {
 
         /// @brief Used to accept the connection from client.
         /// Gets the first connection on the buffer to accept it's connection.
-        socket_t accept() const;
-
-        /// @brief Use the socket returned from accept() as file descriptor
-        /// @return The lenght of the output buffer
-        int recv(socket_t fd, char *buffer, int buffer_size) const;
+        sock accept() const;
 
     private:
         bool m_bount;
