@@ -24,11 +24,6 @@ void basic_socket::print_errorg(const char* msg) const
     if (m_print_error_str) puts(strerror(error_code)), puts("");
 }
 
-void basic_socket::send(const char* msg) const
-{
-    ::send(m_socket, msg, strlen(msg), 0);
-}
-
 basic_socket::~basic_socket()
 {
 #if defined(Windows)
@@ -57,12 +52,12 @@ basic_socket::basic_socket()
 
 void sock::send(const char* msg) const
 {
-    s_send(m_sock_fd, msg, strlen(msg), 0);
+    ::send(m_sock_fd, msg, strlen(msg), 0);
 }
 
 int sock::recv(char* buffer, size_t packet_size) const
 {
-    return s_recv(m_sock_fd, buffer, packet_size, 0);
+    return ::recv(m_sock_fd, buffer, packet_size, 0);
 }
 
 sock::sock(socket_t fd)
@@ -104,11 +99,6 @@ sock client::connect() const
     return ret != -1;
 }
 
-int client::recv(char *buffer, int lenght)
-{
-    return ::recv(m_socket, buffer, lenght, 0);
-}
-
 server::server(unsigned int port)
     : m_bount(false)
 {
@@ -139,13 +129,6 @@ sock server::accept() const
     socketlen_t csize = sizeof(m_consocket);
     auto ret = ::accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
     if (ret <= 0) print_errorg("Could not accept the incoming connection");
-    return ret;
-}
-
-int server::recv(socket_t fd, char *buffer, int buffer_len) const
-{
-    auto ret = ::recv(fd, buffer, buffer_len, 0);
-    if (ret == -1) print_errorg("Could not get message from connection");
     return ret;
 }
 
