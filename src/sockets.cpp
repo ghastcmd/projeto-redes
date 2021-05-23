@@ -3,7 +3,7 @@
 
 namespace conn {
 
-int basic_socket::get_error() const
+int basic_socket::get_error()
 {
 #if defined(Windows)
     return WSAGetLastError();
@@ -12,16 +12,32 @@ int basic_socket::get_error() const
 #endif
 }
 
-void basic_socket::print_error(const char* msg) const
+void basic_socket::print_error(const char* msg)
 {
     fprintf(stderr, ">>> %s\n", msg);
 }
 
-void basic_socket::print_errorg(const char* msg) const
+std::string basic_socket::get_error_string(int error_code)
+{
+    char * str = nullptr;
+#if defined(Windows)
+    FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, 
+        NULL, error_code,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPSTR)&str, 0, NULL
+    );
+#elif defined(Linux)
+    str = (strdup(strerror(error_code)));
+#endif
+    return {str};
+}
+
+void basic_socket::print_errorg(const char* msg)
 {
     auto error_code = get_error();
     fprintf(stderr, ">>> %s, error code: %i\n", msg, error_code);
-    if (m_print_error_str) puts(strerror(error_code)), puts("");
+    std::cout << '\t' << get_error_string(error_code) << '\n';
 }
 
 basic_socket::~basic_socket()
@@ -30,7 +46,6 @@ basic_socket::~basic_socket()
     closesocket(m_socket);
     WSACleanup();
 #elif defined(Linux)    
-    m_print_error_str = true;
     ::close(m_socket);
 #endif
 }
@@ -129,7 +144,7 @@ sock server::accept() const
     socketlen_t csize = sizeof(m_consocket);
     auto ret = ::accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
     if (ret <= 0) print_errorg("Could not accept the incoming connection");
-    return ret;
+    return {ret};
 }
 
 }

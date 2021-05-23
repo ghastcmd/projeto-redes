@@ -31,30 +31,63 @@ void client_func()
     sock.send("close");
 }
 
-void server_func()
+void client_handle(conn::socket_t sock_fd)
 {
-    conn::server serverInstance(2222);
-    puts("Just started the server function");
-    
-    serverInstance.bind();
-    serverInstance.listen(1);
-    std::string msg;
     constexpr size_t packet_size = 25;
-    msg.reserve(packet_size);
-    auto sock = serverInstance.accept();
+    conn::sock sock {sock_fd};
+    char msg[packet_size] {0};
+    snprintf(msg, packet_size, ">> %lu\n", (unsigned long)sock.get_fd());
+    sock.send(msg);
+    // std::string msg;
+    // msg.reserve(packet_size);
+    sock.send("Entered the client handle func\n");
+    sock.send("This is another line i'm writing\n");
     while (1)
     {
-        int lenght = sock.recv(&msg[0], packet_size);
-        if (lenght == 0) break;
+        sock.send("Inside the while loop\n");
+        int lenght = sock.recv(msg, packet_size);
+        printf("lenght: %i\n", lenght);
+        if (lenght == -1)
+        {
+            conn::basic_socket::print_errorg("Socket connection failed");
+        }
+        if (lenght <= 0) break;
         msg[--lenght] = '\0';
-        sock.send(msg.c_str());
+        sock.send(msg);
 
-        if (!strncmp(msg.c_str(), "close", sizeof("close")))
+        if (!strncmp(msg, "close", sizeof("close")))
         {
             break;
         }
 
-        puts(msg.c_str());
+        puts("before putting message to screen");
+        puts(msg);
+    }
+}
+
+std::vector<std::thread> thread_client_pool;
+
+void server_func()
+{
+    conn::server server_instance(2222);
+    puts("Just started the server function");
+    
+    server_instance.bind();
+    server_instance.listen(SOMAXCONN);
+
+    char msg[20] {0};
+    for (int i = 0 ; i < 1; ++i)
+    {
+        conn::sock sock = server_instance.accept();
+        std::cout << sock.get_fd() << '\n';
+        sock.send("The connection was accepted...\n");
+        thread_client_pool.emplace_back(client_handle, sock.get_fd());
+        sock.recv(msg, 20);
+    }
+
+    for (auto &thread: thread_client_pool)
+    {
+        thread.join();
     }
 }
 

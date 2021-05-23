@@ -2,8 +2,9 @@
 #include <string>
 #include <random>
 #include <cstring>
-#include <thread>
 #include <functional>
+#include <thread>
+#include <memory>
 
 #include <time.h>
 

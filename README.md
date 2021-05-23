@@ -14,3 +14,6 @@ Um arquivo [relatório](relatorio.md) está escrito em markdown e atende aos req
 
  - [ ] Relatório com as principais funcionalidades (max 2 pág.)
  - [ ] Uso de Threads
+
+
+* [Thread Pooling in C11](https://stackoverflow.com/questions/15752659/thread-pooling-in-c11)

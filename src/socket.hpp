@@ -15,9 +15,11 @@ namespace conn {
         basic_socket();
         ~basic_socket();
 
-        int get_error() const;
-        void print_error(const char* msg) const;
-        void print_errorg(const char* msg) const;
+        static int get_error();
+        static std::string get_error_string(int error_code);
+
+        static void print_error(const char* msg);
+        static void print_errorg(const char* msg);
         
         /// @brief Used only on windows, it starts the WSA object
         void wsa_startup() const;
@@ -25,20 +27,23 @@ namespace conn {
     protected:
         socket_t m_socket;
         struct sockaddr_in m_consocket;
-    private:
-        bool m_print_error_str = false;
     };
 
     struct sock
     {
+        sock() = default;
         sock(socket_t fd);
         ~sock();
+
+        void assign(sock other) { m_sock_fd = other.m_sock_fd; }
 
         void send(const char *msg) const;
         int recv(char* buffer, size_t packet_size) const;
         
         explicit operator bool() const { return m_sock_fd >= 0; };
         bool operator !() const { return !bool(*this); }
+
+        socket_t get_fd() const noexcept { return m_sock_fd; }
 
     private:
         socket_t m_sock_fd;
