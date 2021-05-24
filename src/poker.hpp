@@ -122,7 +122,7 @@ class Poker{
     int nJog;
     Jogadores *mesaJog, *smallBlind, *turn;
 
-    bool rodada(int blind, int &totPot, bool first = false);
+    bool rodada(int blind, int *totPot, bool first = false);
 
     void checkWinner(int totPot);
 
