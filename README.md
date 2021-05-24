@@ -18,3 +18,4 @@ Um arquivo [relatório](relatorio.md) está escrito em markdown e atende aos req
 
 * [Sockets on linux](https://linux.die.net/man/7/socket)
 * [Get socket Error String Windows](https://stackoverflow.com/questions/3400922/how-do-i-retrieve-an-error-string-from-wsagetlasterror)
+* [Basic implementation of sockets server in Java](https://www.geeksforgeeks.org/multithreaded-servers-in-java/)
