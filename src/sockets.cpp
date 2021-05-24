@@ -40,6 +40,11 @@ void basic_socket::print_errorg(const char* msg)
     std::cout << '\t' << get_error_string(error_code) << '\n';
 }
 
+void basic_socket::assertg(bool op, const char* msg)
+{
+    if (op) print_errorg(msg);
+}
+
 basic_socket::~basic_socket()
 {
 #if defined(Windows)
@@ -72,7 +77,7 @@ void sock::send(const char* msg) const
 
 int sock::recv(char* buffer, size_t packet_size) const
 {
-    return ::recv(m_sock_fd, buffer, packet_size, 0);
+    return ::recv(m_sock_fd, (char*)buffer, (int)packet_size, 0);
 }
 
 sock::sock(socket_t fd)
@@ -109,9 +114,9 @@ client::client(const char *ip, unsigned int port)
 
 sock client::connect() const
 {
-    int ret = ::connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
+    auto ret = ::connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
     if (ret != 0) print_errorg("Could not connect to server with socket");
-    return ret != -1;
+    return sock{m_socket};
 }
 
 server::server(unsigned int port)
@@ -139,12 +144,12 @@ void server::listen(const size_t max) const
     if (ret != 0) print_errorg("The server could not listen... ");
 }
 
-sock server::accept() const
+socket_t server::accept() const
 {
     socketlen_t csize = sizeof(m_consocket);
     auto ret = ::accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
     if (ret <= 0) print_errorg("Could not accept the incoming connection");
-    return {ret};
+    return ret;
 }
 
 }

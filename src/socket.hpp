@@ -20,6 +20,7 @@ namespace conn {
 
         static void print_error(const char* msg);
         static void print_errorg(const char* msg);
+        static void assertg(bool op, const char* msg);
         
         /// @brief Used only on windows, it starts the WSA object
         void wsa_startup() const;
@@ -37,14 +38,14 @@ namespace conn {
 
         void assign(sock other) { m_sock_fd = other.m_sock_fd; }
 
-        void send(const char *msg) const;
+        void send(const char* msg) const;
         int recv(char* buffer, size_t packet_size) const;
-        
+
         explicit operator bool() const { return m_sock_fd >= 0; };
         bool operator !() const { return !bool(*this); }
 
         socket_t get_fd() const noexcept { return m_sock_fd; }
-
+        
     private:
         socket_t m_sock_fd;
     };
@@ -71,7 +72,7 @@ namespace conn {
 
         /// @brief Used to accept the connection from client.
         /// Gets the first connection on the buffer to accept it's connection.
-        sock accept() const;
+        socket_t accept() const;
 
     private:
         bool m_bount;

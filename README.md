@@ -16,4 +16,5 @@ Um arquivo [relatório](relatorio.md) está escrito em markdown e atende aos req
  - [ ] Uso de Threads
 
 
-* [Thread Pooling in C11](https://stackoverflow.com/questions/15752659/thread-pooling-in-c11)
+* [Sockets on linux](https://linux.die.net/man/7/socket)
+* [Get socket Error String Windows](https://stackoverflow.com/questions/3400922/how-do-i-retrieve-an-error-string-from-wsagetlasterror)
