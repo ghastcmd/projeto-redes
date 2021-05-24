@@ -266,7 +266,7 @@ Poker::Poker(int n){
     smallBlind = mesaJog;
 }
 
-bool Poker::rodada(int blind, int &totPot, bool first){
+bool Poker::rodada(int blind, int *totPot, bool first){
     int pot = 0;
     cout << "Mesa:" << endl;
     mesa.printHand();
@@ -296,7 +296,7 @@ bool Poker::rodada(int blind, int &totPot, bool first){
         Jogadores *nextJogador = nextJog(turn);
         if(nextJogador == turn){
             cout << "Jogador " << turn->jog->getName() << " ganhou por ser o único jogador na partida" << endl;
-            turn->jog->add(totPot);
+            turn->jog->add(*totPot);
             return true;
         }
         jogadas j = turn->jog->acao();
@@ -311,7 +311,7 @@ bool Poker::rodada(int blind, int &totPot, bool first){
         }
         turn = nextJogador;
     }while(turn != raisePlayer);
-    totPot += pot;
+    *totPot += pot;
     return false;
 }
 
@@ -389,13 +389,13 @@ void Poker::newGame(){
     dealer();
     int totPot = 0;
     mesa.pick(deck, 3);
-    if(rodada(200, totPot, true))
+    if(rodada(200, &totPot, true))
         return;
     mesa.pick(deck);
-    if(rodada(200, totPot))
+    if(rodada(200, &totPot))
         return;
     mesa.pick(deck);
-    if(rodada(200, totPot))
+    if(rodada(200, &totPot))
         return;
     checkWinner(totPot);
 }
