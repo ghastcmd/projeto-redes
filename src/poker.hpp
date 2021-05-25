@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.hpp"
+#include "socket.hpp"
 
 using namespace std;
 
@@ -67,7 +68,7 @@ class Hand{
 
     Hand *operator+(const Hand& h2);
 
-    void printHand();
+    string printHand();
 
     ~Hand();
 };
@@ -77,18 +78,20 @@ class Jogador{
     int dinheiro;
     Hand hand;
     int rank;
-    string name;
   public:
+    int porta;
+    const size_t packet_size = 50;
+    string name;
     int pot;
     const char* rankDesc;
     const char* dscRankDesc;
-    Jogador();
+    Jogador(int p);
 
     string getName();
 
     void deal(Deck *deck);
 
-    void printHand();
+    string printHand();
 
     void checkHand(Hand *mesa);
 
@@ -98,7 +101,7 @@ class Jogador{
 
     void clearHand();
 
-    int raise(int &oldBet);
+    int raise(int *oldBet);
 
     int bet(int b);
 
@@ -121,12 +124,15 @@ class Poker{
     Hand mesa;
     int nJog;
     Jogadores *mesaJog, *smallBlind, *turn;
+    int portas[7] = {82, 83, 84, 85, 86, 87, 88};
+
+    void cast(string s, bool first);
 
     bool rodada(int blind, int *totPot, bool first = false);
 
     void checkWinner(int totPot);
 
-    void addPlayer();
+    Jogador* addPlayer();
 
     void dealer();
 
