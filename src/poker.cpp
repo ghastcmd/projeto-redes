@@ -148,28 +148,44 @@ Hand * Hand::operator+(const Hand& h2){
     return newHand;
 }
 
-void Hand::printHand(){
+string Hand::printHand(){
     int i = 0;
+    string s = "";
     listCards *aux = hand;
     while(aux != NULL){
-        cout << aux->c->carta;
+        s += aux->c->carta;
         i++;
         aux = aux->next;
         if(i == tam)
             break;
-        cout << " | ";
+        s += " | ";
     }
-    cout << endl;
+    s += "\n";
+    return s;
 }
 
 Hand::~Hand(){
     discarAll();
 }
 
-Jogador::Jogador(){
-    dinheiro = 200000;
-    cout << "Digite seu nome: ";
-    cin >> name;
+Jogador::Jogador(int p){
+    porta = p;
+    dinheiro = 20000;
+}
+
+void perguntarNome(conn::socket_t sock_fd, Jogador* jog){
+    conn::sock csock(sock_fd);
+    csock.send("Olá jogador qual o seu nome?\n");
+    constexpr size_t packet_size = 25;
+    char msg[packet_size] {0};
+    int lenght;
+    do{
+      lenght = csock.recv(msg, packet_size); 
+    }while(lenght <= 0);
+    msg[--lenght] = '\0';
+    jog->name = string(msg);
+    csock.send("Bem vindo ao jogo, você recebeu 20000 R$\n");
+    csock.send((to_string(jog->porta) + "\n").c_str());
 }
 
 string Jogador::getName(){
@@ -180,8 +196,8 @@ void Jogador::deal(Deck *deck){
     hand.pick(deck, 2);
 }
 
-void Jogador::printHand(){
-    hand.printHand();
+string  Jogador::printHand(){
+    return hand.printHand();
 }
 
 void Jogador::checkHand(Hand *mesa){
@@ -203,14 +219,23 @@ void Jogador::checkHand(Hand *mesa){
 }
 
 jogadas Jogador::acao(){
-    if(dinheiro == 0)
-        return CALL;
+    conn::server server_instance(porta);
+    server_instance.bind();
+    server_instance.listen(1);
+    conn::socket_t sock_fd = server_instance.accept();
+    conn::sock csock(sock_fd);
+    if(dinheiro == 0){
+      csock.send("Você não possui mais dinheiro para apostar (CALL)\n");
+      return CALL;
+    }
     int i;
-    cout << "Escolha ação jogador " << getName() << " (0 - FOLD, 1 - CALL; 2 - RAISE): ";
-    cin >> i;
-    if(i == 0)
+    csock.send("Escolha ação você vai fazer (0 - FOLD, 1 - CALL; 2 - RAISE):)");
+    constexpr size_t packet_size = 25;
+    char msg[packet_size] {0};
+    csock.recv(msg, packet_size);
+    if(msg[0] == '0')
         return FOLD;
-    if(i == 2)
+    if(msg[0] == '2')
         return RAISE;
     return CALL;
 }
@@ -223,16 +248,24 @@ void Jogador::clearHand(){
     hand.discarAll();
 }
 
-int Jogador::raise(int &oldBet){
+int Jogador::raise(int *oldBet){
     int newBet;
+    conn::server server_instance(porta);
+    server_instance.bind();
+    server_instance.listen(1);
+    conn::socket_t sock_fd = server_instance.accept();
+    conn::sock csock(sock_fd);
+    constexpr size_t packet_size = 25;
+    char msg[packet_size] {0};
     do{
-        cout << "A aposta atual é de " << oldBet << ". Qual o valor da nova aposta? (0 == All-In): ";
-        cin >> newBet;
+        csock.send(("A aposta atual é de " + to_string(*oldBet) + ". Qual o valor da nova aposta? (0 == All-In): ").c_str());
+        csock.recv(msg, packet_size);
+        newBet = stoi(string(msg));
         if(newBet == 0)
             newBet = dinheiro + pot;
-    }while(newBet < oldBet || (newBet - pot) > dinheiro);
-    oldBet = newBet;
-    return bet(oldBet);
+    }while(newBet <= *oldBet || (newBet - pot) > dinheiro);
+    *oldBet = newBet;
+    return bet(*oldBet);
 }
 
 int Jogador::bet(int b){
@@ -241,7 +274,6 @@ int Jogador::bet(int b){
         act_bet = dinheiro;
     dinheiro -= act_bet;
     pot += act_bet;
-    cout << "Jogador " << getName() << " você apostou: " << act_bet << endl;
     return act_bet;
 }
 
@@ -261,33 +293,73 @@ Poker::Poker(int n){
     deck = new Deck();
     nJog = 0;
     mesaJog = NULL;
-    while(n--)
-        addPlayer();
+    conn::server server_instance(2222);
+    server_instance.bind();
+    server_instance.listen(n);
+    vector<thread> threads;
+    while(n--){
+      conn::socket_t sock_fd = server_instance.accept();
+      Jogador* jog = addPlayer();
+      threads.push_back(thread(perguntarNome, sock_fd, jog));
+    }
+    
+    for (auto &val: threads)
+    {
+        val.join();
+    }
+
     smallBlind = mesaJog;
+}
+
+void printHand(conn::socket_t sock_fd, string s, Jogador* jog, bool first){
+    conn::sock csock(sock_fd);
+    csock.send(s.c_str());
+    if(first){
+      csock.send(("Sua mão:\n" + jog->printHand() + "\n").c_str());
+      csock.send(("Você possui: " + string(jog->rankDesc) + "\n").c_str());
+    }
+}
+
+void Poker::cast(string s, bool first = false){
+  Jogadores *aux = nextJog(mesaJog->prev);
+  Jogadores *stop = nextJog(mesaJog->prev);
+  if(!first)
+    stop = mesaJog;
+  vector<thread> threads;
+  do{
+    conn::server server_instance(aux->jog->porta);
+    server_instance.bind();
+    server_instance.listen(1);
+    conn::socket_t sock_fd = server_instance.accept();
+    if(first){
+      aux->jog->checkHand(&mesa);
+      aux->jog->pot = 0;
+    }
+    threads.push_back(thread(printHand, sock_fd, s, aux->jog, first));
+    if(first)
+      aux = nextJog(aux);
+    else
+      aux = aux->next;
+  }while(aux != stop);
+  for (auto &val: threads)
+    {
+      val.join();
+    }
 }
 
 bool Poker::rodada(int blind, int *totPot, bool first){
     int pot = 0;
-    cout << "Mesa:" << endl;
-    mesa.printHand();
-    Jogadores *aux = nextJog(mesaJog->prev);
-    do{
-        cout << "Jogador " << aux->jog->getName() << ":" << endl;
-        if(first)
-            aux->jog->deal(deck);
-        aux->jog->printHand();
-        aux->jog->checkHand(&mesa);
-        aux->jog->pot = 0;
-        cout << "você tem um " << aux->jog->rankDesc << endl;
-        aux = nextJog(aux);
-    }while(aux != mesaJog);
+    string s = "Cartas da Mesa:\n" + mesa.printHand() + "\n";
+    cast(s, true);
     int bet = blind;
     if(first){
         turn = smallBlind;
         smallBlind = smallBlind->next;
         pot += turn->jog->bet(bet / 2);
+        cast("Jogador " + turn->jog->name + " apostou " + to_string(bet / 2) + "\n");
         turn = nextJog(turn);
         pot += turn->jog->bet(bet);
+        cast("Jogador " + turn->jog->name + " apostou " + to_string(bet) + "\n");
     }
     Jogadores *raisePlayer = turn;
     if(first)
@@ -295,19 +367,21 @@ bool Poker::rodada(int blind, int *totPot, bool first){
     do{
         Jogadores *nextJogador = nextJog(turn);
         if(nextJogador == turn){
-            cout << "Jogador " << turn->jog->getName() << " ganhou por ser o único jogador na partida" << endl;
+            cast("Jogador " + turn->jog->name + " ganhou por ser o único jogador na partida\n");
             turn->jog->add(*totPot);
             return true;
         }
         jogadas j = turn->jog->acao();
-        if(j == CALL)
+        if(j == CALL){
             pot += turn->jog->bet(bet);
-        else if(j == FOLD){
-            cout << "Jogador " << turn->jog->getName() << " apandonou esse jogo!" << endl;
+            cast("Jogador " + turn->jog->name + " apostou " + to_string(bet) + "\n");
+        }else if(j == FOLD){
+            cast("Jogador " + turn->jog->name + " apandonou essa partida!\n");
             turn->inGame = false;
         }else{
-            pot += turn->jog->raise(bet);
+            pot += turn->jog->raise(&bet);
             raisePlayer = turn;
+            cast("Jogador " + turn->jog->name + " aumentou a aposta para " + to_string(bet) + "\n");
         }
         turn = nextJogador;
     }while(turn != raisePlayer);
@@ -328,20 +402,23 @@ void Poker::checkWinner(int totPot){
         }
         aux = nextJog(aux);
     }
+    string s = "";
     if(draw != 1)
-        cout << "Empate:" << endl;
+        s += "Empate:\n";
     totPot /= draw;
     aux = winner;
     do{
         if(*(aux->jog) == *(winner->jog)){
-            cout << "Jogador " << aux->jog->getName() << " ganhou com " << aux->jog->dscRankDesc << endl;
+            s += "Jogador " + aux->jog->getName() + " ganhou com " + aux->jog->dscRankDesc + "\n";
             aux->jog->add(totPot);
         }
         aux = nextJog(aux);
     }while(aux != winner);
+    s += "Valor recebido por cada vencedor :" + to_string(totPot);
+    cast(s);
 }
 
-void Poker::addPlayer(){
+Jogador* Poker::addPlayer(){
     Jogadores *aux = new Jogadores;
     if(mesaJog == NULL){
         mesaJog = aux;
@@ -352,30 +429,33 @@ void Poker::addPlayer(){
         mesaJog->prev = aux;
     }
     aux->next = mesaJog;
-    aux->jog = new Jogador();
+    aux->jog = new Jogador(portas[nJog]);
     aux->inGame = true;
     nJog++;
+    return aux->jog;
 }
 
 void Poker::dealer(){
     Jogadores *aux = mesaJog;
+    deck->reshuffle();
     do{
         if(aux->jog->isBankrupt()){
             Jogadores *auxDel = aux;
             aux = aux->next;
             aux->prev = auxDel->prev;
             aux->prev->next = aux;
-            cout << "Jogador " + auxDel->jog->getName() + " faliu e será desconectado..." << endl;
+            cast("Jogador " + auxDel->jog->name + " faliu e será desconectado...\n");
             delete auxDel->jog;
             delete auxDel;
         }else{
             aux->jog->clearHand();
             aux->inGame = true;
+            aux->jog->deal(deck);
             aux = aux->next;
         }
     }while(aux != mesaJog);
     mesa.discarAll();
-    deck->reshuffle();
+    mesa.pick(deck, 3);
 }
 
 Jogadores * Poker::nextJog(Jogadores *turn){
@@ -388,7 +468,6 @@ Jogadores * Poker::nextJog(Jogadores *turn){
 void Poker::newGame(){
     dealer();
     int totPot = 0;
-    mesa.pick(deck, 3);
     if(rodada(200, &totPot, true))
         return;
     mesa.pick(deck);
@@ -410,15 +489,3 @@ Poker::~Poker(){
         delete smallBlind;
     }
 }
-
-#if defined(POKER_TEST)
-
-int main() {
-    srand(time(NULL));
-    Poker p(4);
-    p.newGame();
-    p.newGame();
-    p.newGame();
-}
-
-#endif
