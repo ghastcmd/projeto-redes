@@ -70,3 +70,6 @@ clean:
 clean_pch:
 	$(SS)echo Cleaning pch compiled file
 	$(SS)rm -f $(gch)
+
+relatorio:
+	$(SS)bash -c 'pandoc relatorio.md -o relatorio.pdf'
