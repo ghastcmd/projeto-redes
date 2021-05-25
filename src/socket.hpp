@@ -20,6 +20,7 @@ namespace conn {
 
         static void print_error(const char* msg);
         static void print_errorg(const char* msg);
+        static void assertf(bool op, const char* msg);
         static void assertg(bool op, const char* msg);
         
         /// @brief Used only on windows, it starts the WSA object

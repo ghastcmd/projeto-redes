@@ -40,6 +40,11 @@ void basic_socket::print_errorg(const char* msg)
     std::cout << '\t' << get_error_string(error_code) << '\n';
 }
 
+void basic_socket::assertf(bool op, const char* msg)
+{
+    if (op) print_error(msg);
+}
+
 void basic_socket::assertg(bool op, const char* msg)
 {
     if (op) print_errorg(msg);
@@ -60,8 +65,7 @@ void basic_socket::wsa_startup() const
 #if defined(Windows)
     WSADATA wsa;
     int wsa_ret = WSAStartup(MAKEWORD(2, 2), &wsa);
-    if (wsa_ret != 0)
-        print_error("WSA Startup failed");
+    assertf(wsa_ret != 0, "WSA Startup Failed");
 #endif
 }
 
@@ -100,14 +104,11 @@ client::client(const char *ip, unsigned int port)
 {
     // Starting the socket with ip protocol and tcp connection
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (m_socket <= 0)
-        print_errorg("Invalid socket returned");
+    assertg(m_socket <= 0, "Invalid socket returned");
 
     m_consocket.sin_addr.s_addr = inet_addr(ip);
-    if (m_consocket.sin_addr.s_addr == INADDR_NONE)
-        print_error("Invalid ip address, none");
-    else if (m_consocket.sin_addr.s_addr == INADDR_ANY)
-        print_error("Invalid ip address, any");
+    assertf(m_consocket.sin_addr.s_addr == INADDR_NONE, "Invalid ip address, none");
+    assertf(m_consocket.sin_addr.s_addr == INADDR_ANY, "Invalid ip address, any");
 
     m_consocket.sin_family = AF_INET;
     m_consocket.sin_port = htons(port);
@@ -116,7 +117,7 @@ client::client(const char *ip, unsigned int port)
 sock client::connect() const
 {
     auto ret = ::connect(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
-    if (ret != 0) print_errorg("Could not connect to server with socket");
+    assertg(ret != 0, "Could not connect to server with socket");
     return sock{m_socket};
 }
 
@@ -124,6 +125,7 @@ server::server(unsigned int port)
     : m_bount(false)
 {
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
+    assertg(m_socket <= 0, "Invalid socket returned");
 
     m_consocket.sin_family = AF_INET;
     m_consocket.sin_port = htons(port);
@@ -133,23 +135,23 @@ server::server(unsigned int port)
 void server::bind()
 {
     int ret = ::bind(m_socket, (struct sockaddr*)&m_consocket, sizeof(m_consocket));
-    if (ret != 0) print_errorg("Could not bind to the socket");
+    assertg(ret != 0, "Could not bind to the socket");
     m_bount = true;
 }
 
 void server::listen(const size_t max) const
 {
-    if (!m_bount) print_error("Need to bind first");
-    if (!(max <= SOMAXCONN)) print_error("The max count number not supported");
+    assertf(!m_bount, "Need to bind first");
+    assertf(!(max <= SOMAXCONN), "The max count number not supported");
     int ret = ::listen(m_socket, max);
-    if (ret != 0) print_errorg("The server could not listen... ");
+    assertg(ret != 0, "The server could not listen...");
 }
 
 socket_t server::accept() const
 {
     socketlen_t csize = sizeof(m_consocket);
     auto ret = ::accept(m_socket, (struct sockaddr*)&m_consocket, &csize);
-    if (ret <= 0) print_errorg("Could not accept the incoming connection");
+    assertf(ret <= 0, "Could not accept the incoming connection");
     return ret;
 }
 
