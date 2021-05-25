@@ -356,10 +356,10 @@ bool Poker::rodada(int blind, int *totPot, bool first){
         turn = smallBlind;
         smallBlind = smallBlind->next;
         pot += turn->jog->bet(bet / 2);
-        cast("Jogador " + turn->jog->name + " apostou " + to_string(bet / 2) + "\n");
+        cast("Jogador " + turn->jog->getName() + " apostou " + to_string(bet / 2) + "\n");
         turn = nextJog(turn);
         pot += turn->jog->bet(bet);
-        cast("Jogador " + turn->jog->name + " apostou " + to_string(bet) + "\n");
+        cast("Jogador " + turn->jog->getName() + " apostou " + to_string(bet) + "\n");
     }
     Jogadores *raisePlayer = turn;
     if(first)
@@ -367,21 +367,21 @@ bool Poker::rodada(int blind, int *totPot, bool first){
     do{
         Jogadores *nextJogador = nextJog(turn);
         if(nextJogador == turn){
-            cast("Jogador " + turn->jog->name + " ganhou por ser o único jogador na partida\n");
+            cast("Jogador " + turn->jog->getName() + " ganhou por ser o único jogador na partida\n");
             turn->jog->add(*totPot);
             return true;
         }
         jogadas j = turn->jog->acao();
         if(j == CALL){
             pot += turn->jog->bet(bet);
-            cast("Jogador " + turn->jog->name + " apostou " + to_string(bet) + "\n");
+            cast("Jogador " + turn->jog->getName() + " apostou " + to_string(bet) + "\n");
         }else if(j == FOLD){
-            cast("Jogador " + turn->jog->name + " apandonou essa partida!\n");
+            cast("Jogador " + turn->jog->getName() + " apandonou essa partida!\n");
             turn->inGame = false;
         }else{
             pot += turn->jog->raise(&bet);
             raisePlayer = turn;
-            cast("Jogador " + turn->jog->name + " aumentou a aposta para " + to_string(bet) + "\n");
+            cast("Jogador " + turn->jog->getName() + " aumentou a aposta para " + to_string(bet) + "\n");
         }
         turn = nextJogador;
     }while(turn != raisePlayer);
@@ -441,6 +441,8 @@ void Poker::dealer(){
     do{
         if(aux->jog->isBankrupt()){
             Jogadores *auxDel = aux;
+            if(auxDel == smallBlind)
+              smallBlind = smallBlind->next;
             aux = aux->next;
             aux->prev = auxDel->prev;
             aux->prev->next = aux;
