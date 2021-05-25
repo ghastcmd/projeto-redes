@@ -31,10 +31,12 @@ void client_func()
     sock.send("close");
 }
 
-void client_handle(const conn::socket_t sock_fd)
+std::vector<std::shared_ptr<conn::sock>> client_sockets;
+
+void client_handle(size_t index)
 {
     using namespace conn;
-    conn::sock csock(sock_fd);
+    const auto &csock = *client_sockets[index];
     
     constexpr size_t packet_size = 25;
     char msg[packet_size] {0};
@@ -54,12 +56,18 @@ void client_handle(const conn::socket_t sock_fd)
     }
 }
 
+void simple_func(size_t index)
+{
+    std::cout << client_sockets[index]->get_fd() << ' ' << index << '\n';
+    client_sockets[index]->send("This is some message\n");
+}
+
 void server_func()
 {
     conn::server server_instance(2222);
     puts("Just started the server function");
     
-    constexpr int no_connections = 2;
+    constexpr int no_connections = 1;
 
     server_instance.bind();
     server_instance.listen(no_connections);
@@ -69,7 +77,9 @@ void server_func()
     for (int i = 0; i < no_connections; i++)
     {
         auto sock_fd = server_instance.accept();
-        threads.push_back(std::thread(client_handle, sock_fd));
+
+        client_sockets.emplace_back(std::make_shared<conn::sock>(sock_fd));
+        threads.emplace_back(std::thread(client_handle, i));
     }
 
     for (auto &val: threads)
