@@ -31,12 +31,11 @@ void client_func()
     sock.send("close");
 }
 
-std::vector<std::shared_ptr<conn::sock>> client_sockets;
-
-void client_handle(size_t index)
+void client_handle(const conn::sock* psock)
 {
     using namespace conn;
-    const auto &csock = *client_sockets[index];
+    const conn::sock &csock = *psock;
+    // const auto &csock = *client_sockets[index];
     
     constexpr size_t packet_size = 25;
     char msg[packet_size] {0};
@@ -56,12 +55,6 @@ void client_handle(size_t index)
     }
 }
 
-void simple_func(size_t index)
-{
-    std::cout << client_sockets[index]->get_fd() << ' ' << index << '\n';
-    client_sockets[index]->send("This is some message\n");
-}
-
 void server_func()
 {
     conn::server server_instance(2222);
@@ -73,13 +66,14 @@ void server_func()
     server_instance.listen(no_connections);
 
     std::vector<std::thread> threads;
+    std::vector<std::shared_ptr<const conn::sock>> client_sockets;
 
     for (int i = 0; i < no_connections; i++)
     {
         auto sock_fd = server_instance.accept();
 
-        client_sockets.emplace_back(std::make_shared<conn::sock>(sock_fd));
-        threads.emplace_back(std::thread(client_handle, i));
+        client_sockets.emplace_back(std::make_shared<const conn::sock>(sock_fd));
+        threads.push_back(std::thread(client_handle, client_sockets[i].get()));
     }
 
     for (auto &val: threads)
