@@ -446,6 +446,8 @@ void Poker::dealer(){
             aux->prev = auxDel->prev;
             aux->prev->next = aux;
             cast("Jogador " + auxDel->jog->name + " faliu e será desconectado...\n");
+            const auto& csock = *sockets[auxDel->jog->socket_index];
+            csock.send("close");
             delete auxDel->jog;
             delete auxDel;
         }else{
