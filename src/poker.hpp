@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.hpp"
 #include "socket.hpp"
 
 using namespace std;
@@ -79,7 +78,7 @@ class Jogador{
     Hand hand;
     int rank;
   public:
-    int porta;
+    int socket_index;
     const size_t packet_size = 50;
     string name;
     int pot;
@@ -124,7 +123,8 @@ class Poker{
     Hand mesa;
     int nJog;
     Jogadores *mesaJog, *smallBlind, *turn;
-    int portas[7] = {82, 83, 84, 85, 86, 87, 88};
+    
+    // int portas[7] = {82, 83, 84, 85, 86, 87, 88};
 
     void cast(string s, bool first);
 

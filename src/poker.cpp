@@ -4,6 +4,8 @@
 
 using namespace std;
 
+vector<shared_ptr<const conn::sock>> sockets;
+
 const char* rank_category_description[] = {
   "",
   "Straight Flush",
@@ -168,24 +170,27 @@ Hand::~Hand(){
     discarAll();
 }
 
+[[deprecated]]
 Jogador::Jogador(int p){
-    porta = p;
+    socket_index = p;
     dinheiro = 20000;
 }
 
-void perguntarNome(conn::socket_t sock_fd, Jogador* jog){
-    conn::sock csock(sock_fd);
-    csock.send("Olá jogador qual o seu nome?\n");
-    constexpr size_t packet_size = 25;
+void perguntarNome(int socket_index, Jogador* jog){
+    const auto& csock = *sockets[socket_index];
+    csock.send("Olá jogador, qual o seu nome?\n");
+    constexpr size_t packet_size = 200;
     char msg[packet_size] {0};
-    int lenght;
-    do{
-      lenght = csock.recv(msg, packet_size); 
-    }while(lenght <= 0);
-    msg[--lenght] = '\0';
-    jog->name = string(msg);
-    csock.send("Bem vindo ao jogo, você recebeu 20000 R$\n");
-    csock.send((to_string(jog->porta) + "\n").c_str());
+    int lenght = csock.recv(msg, packet_size);
+    string name_str(msg);
+
+    size_t last_index = name_str.find_first_of("\r\n\0");
+    name_str = name_str.substr(0, last_index);
+
+    jog->name = name_str;
+    cout << "O jogador '" << jog->name << "' foi registrado\n";
+    csock.send("Bem vindo ao jogo, você recebeu R$ 20000\n");
+    csock.send((to_string(jog->socket_index) + "\n").c_str());
 }
 
 string Jogador::getName(){
@@ -219,11 +224,7 @@ void Jogador::checkHand(Hand *mesa){
 }
 
 jogadas Jogador::acao(){
-    conn::server server_instance(porta);
-    server_instance.bind();
-    server_instance.listen(1);
-    conn::socket_t sock_fd = server_instance.accept();
-    conn::sock csock(sock_fd);
+    const auto& csock = *sockets[socket_index];
     if(dinheiro == 0){
       csock.send("Você não possui mais dinheiro para apostar (CALL)\n");
       return CALL;
@@ -250,11 +251,7 @@ void Jogador::clearHand(){
 
 int Jogador::raise(int *oldBet){
     int newBet;
-    conn::server server_instance(porta);
-    server_instance.bind();
-    server_instance.listen(1);
-    conn::socket_t sock_fd = server_instance.accept();
-    conn::sock csock(sock_fd);
+    const auto& csock = *sockets[socket_index];
     constexpr size_t packet_size = 25;
     char msg[packet_size] {0};
     do{
@@ -278,7 +275,7 @@ int Jogador::bet(int b){
 }
 
 bool Jogador::isBankrupt(){
-return dinheiro == 0;
+    return dinheiro == 0;
 }
 
 bool Jogador::operator>(const Jogador& j){
@@ -298,9 +295,10 @@ Poker::Poker(int n){
     server_instance.listen(n);
     vector<thread> threads;
     while(n--){
-      conn::socket_t sock_fd = server_instance.accept();
-      Jogador* jog = addPlayer();
-      threads.push_back(thread(perguntarNome, sock_fd, jog));
+        conn::socket_t sock_fd = server_instance.accept();
+        sockets.emplace_back(make_shared<conn::sock>(sock_fd));
+        Jogador* jog = addPlayer();
+        threads.push_back(thread(perguntarNome, jog->socket_index, jog));
     }
     
     for (auto &val: threads)
@@ -311,8 +309,10 @@ Poker::Poker(int n){
     smallBlind = mesaJog;
 }
 
-void printHand(conn::socket_t sock_fd, string s, Jogador* jog, bool first){
-    conn::sock csock(sock_fd);
+void printHand(int socket_index, string s, Jogador* jog, bool first){
+    // conn::sock csock(sock_fd);
+    const auto& csock = *sockets[socket_index];
+    puts(s.c_str());
     csock.send(s.c_str());
     if(first){
       csock.send(("Sua mão:\n" + jog->printHand() + "\n").c_str());
@@ -321,29 +321,26 @@ void printHand(conn::socket_t sock_fd, string s, Jogador* jog, bool first){
 }
 
 void Poker::cast(string s, bool first = false){
-  Jogadores *aux = nextJog(mesaJog->prev);
-  Jogadores *stop = nextJog(mesaJog->prev);
-  if(!first)
-    stop = mesaJog;
-  vector<thread> threads;
-  do{
-    conn::server server_instance(aux->jog->porta);
-    server_instance.bind();
-    server_instance.listen(1);
-    conn::socket_t sock_fd = server_instance.accept();
-    if(first){
-      aux->jog->checkHand(&mesa);
-      aux->jog->pot = 0;
-    }
-    threads.push_back(thread(printHand, sock_fd, s, aux->jog, first));
-    if(first)
-      aux = nextJog(aux);
-    else
-      aux = aux->next;
-  }while(aux != stop);
-  for (auto &val: threads)
+    Jogadores *aux = nextJog(mesaJog->prev);
+    Jogadores *stop = nextJog(mesaJog->prev);
+    if(!first)
+        stop = mesaJog;
+    vector<thread> threads;
+    do{
+        if(first){
+        aux->jog->checkHand(&mesa);
+        aux->jog->pot = 0;
+        }
+        threads.push_back(thread(printHand, aux->jog->socket_index, s, aux->jog, first));
+        if(first)
+        aux = nextJog(aux);
+        else
+        aux = aux->next;
+    }while(aux != stop);
+
+    for (auto &val: threads)
     {
-      val.join();
+        val.join();
     }
 }
 
@@ -429,7 +426,7 @@ Jogador* Poker::addPlayer(){
         mesaJog->prev = aux;
     }
     aux->next = mesaJog;
-    aux->jog = new Jogador(portas[nJog]);
+    aux->jog = new Jogador(nJog);
     aux->inGame = true;
     nJog++;
     return aux->jog;
@@ -470,14 +467,18 @@ Jogadores * Poker::nextJog(Jogadores *turn){
 void Poker::newGame(){
     dealer();
     int totPot = 0;
+    puts("this is after the dealer");
     if(rodada(200, &totPot, true))
         return;
+    puts("this is after the first round");
     mesa.pick(deck);
     if(rodada(200, &totPot))
         return;
+    puts("this is after the second round");
     mesa.pick(deck);
     if(rodada(200, &totPot))
         return;
+    puts("this is after the third round");
     checkWinner(totPot);
 }
 

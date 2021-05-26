@@ -84,8 +84,6 @@ int sock::recv(char* buffer, size_t packet_size) const
     return ::recv(m_sock_fd, (char*)buffer, (int)packet_size, 0);
 }
 
-int socket_num = 0;
-
 sock::sock(socket_t fd)
     : m_sock_fd(fd)
 {

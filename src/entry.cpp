@@ -84,8 +84,34 @@ void server_func()
 
 #if !defined(TEST)
 
+void function_test_jogo()
+{
+    Poker jogo(2);
+    jogo.newGame();
+}
+
+void function_test_client()
+{
+    conn::client sclient("127.0.0.1", 2222);
+
+    auto sock_fd = sclient.connect();
+    conn::sock csock(sock_fd);
+
+    char msg[200] {0};
+    csock.recv(msg, 200);
+    csock.send("audalio\n\0");
+}
+
 int main(int argc, char *argv[])
 {
+    std::thread jogo(function_test_jogo);
+    // std::thread client(function_test_client);
+
+    jogo.join();
+    // client.join();
+
+    return 0;
+
     if (argc > 1 && !strcmp(argv[1], "client"))
     {
         client_func();
