@@ -3,7 +3,7 @@ title: Relatório da aplicação
 subtitle: Relatório de explicação e documentação da aplicação
 author: |
     | Eduardo Brasil Araujo
-    | Cesar Cícero
+    | Cesar Henrique Cícero
 geometry: margin=4cm 
 ---
 
