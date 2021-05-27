@@ -25,3 +25,16 @@ O poker consiste em 3 rodadas de apostas. Na primeira, o *small Blind* é obriga
 Após a última carta da mesa ser revelada, e a última rodada de apostas ocorrer, todos os jogadores que continuarem na partida revelam suas mãos e o jogador que conseguir formar com a mesa a melhor mão (maior rank) vence a partida e recebe todo o dinheiro no *pot*; caso haja empate, o *pot* é dividido.
 
 Para cada nova rodada é chamada a função de membro `newGame()` no objeto `Poker`.
+
+## Como rodar
+
+o programa main será o servidor, basta rodá-lo para que o jogo seja criado e n jogadores possam se conectar e jogar o jogo.
+Cada jogador deverá rodar o programa cliente, será pedido o nome do jogador onde o jogador irá digitar no terminal a informação e depois que todos os jogadores se conectarem as rodadas se iniciam, o servidor mandará mensagens para cada jogador atualizando-os de suas cartas e das açoes de outros jogadores. No turno do jogador específico será pedido para ele digitar um número (0 (sair da rodada, jogador será só observador sem possibilidade de receber o pot), 1 (pagar o valor da aposta) ou 2(aumentar a aposta)) para que ele tome uma ação, caso ele escolha a opção 2 (aumentar a aposta) será pedido qual o valor que ele deseja aumentar (0 seria apostar todo o dinheiro). Ao final de cada rodada o jogador que tiver a melhor mão leva o pot e uma nova rodada é iniciada.
+
+## O que poderia ser feito para implementar:
+
+uma possível implementação seria que os jogadores pudessem se conectar a quaisquer instantes no jogo, não só no inicio  dele, outra implementação seria salvar as informações de dinheiro de cada jogador em um arquivo para que se o mesmo jogador se desconectasse e depois retornasse para a partida, ele teria o dinheiro de antes da desconexão.
+
+## dificuldades encontradas
+
+calcular a melhor mão foi uma busca grande, mas achamos um algorítimo que registrou o ranking de cada grupo de 7 cartas em lookup table para facilitar o calculo da melhor mão.
