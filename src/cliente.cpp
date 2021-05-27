@@ -13,8 +13,24 @@ void client_fn() {
     std::cin >> name;
     sock.send(name.c_str());
     while(true){
-        int lenght = sock.recv(msg, packet_size);
-        if (lenght <= 0) 
+      int lenght = sock.recv(msg, packet_size);
+      if (lenght <= 0) 
+        break;
+      msg[--lenght] = '\0';
+      if (!strncmp(msg, "close", sizeof("close")))
+        break;
+      if (strncmp(msg, "recv", sizeof("recv")))
+        std::cout << msg << "\n";
+      else{
+        int i;
+        do{
+          std::cin >> s;
+          i = stoi(s);
+        }while(i < 0 || i > 2);
+        sock.send(std::to_string(i).c_str());
+        if(i == 2){
+          int lenght = sock.recv(msg, packet_size);
+          if (lenght <= 0) 
             break;
         msg[--lenght] = '\0';
         puts(msg);

@@ -232,7 +232,7 @@ jogadas Jogador::acao(){
     }
     int i;
     csock.send("Escolha ação você vai fazer (0 - FOLD, 1 - CALL; 2 - RAISE):\n");
-    csock.send("recv\n");
+    csock.send("recv\0");
     constexpr size_t packet_size = 25;
     char msg[packet_size] {0};
     csock.recv(msg, packet_size);
@@ -263,7 +263,7 @@ int Jogador::raise(int *oldBet){
         if(newBet == 0)
             newBet = dinheiro + pot;
     }while(newBet <= *oldBet || (newBet - pot) > dinheiro);
-    csock.send("ok");
+    csock.send("ok\0");
     *oldBet = newBet;
     return bet(*oldBet);
 }
@@ -448,7 +448,7 @@ void Poker::dealer(){
             aux->prev->next = aux;
             cast("Jogador " + auxDel->jog->name + " faliu e será desconectado...\n");
             const auto& csock = *sockets[auxDel->jog->socket_index];
-            csock.send("close\n");
+            csock.send("close\0");
             delete auxDel->jog;
             delete auxDel;
         }else{
