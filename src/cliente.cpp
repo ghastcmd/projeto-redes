@@ -17,6 +17,7 @@ void client_fn() {
         if (lenght <= 0) 
             break;
         msg[--lenght] = '\0';
+        puts(msg);
         if (!strncmp(msg, "close", sizeof("close")))
             break;
         if (strncmp(msg, "recv", sizeof("recv")))
@@ -24,24 +25,24 @@ void client_fn() {
         else{
             int i;
             do{
-                std::cin >> s;
-                i = stoi(s);
-            } while(i < 0 || i > 2);
+            std::cin >> s;
+            i = stoi(s);
+            }while(i < 0 || i > 2);
             sock.send(std::to_string(i).c_str());
             if(i == 2){
+            int lenght = sock.recv(msg, packet_size);
+            if (lenght <= 0) 
+                break;
+            msg[--lenght] = '\0';
+            do{
+                std::cout << msg;
+                std::cin >> s;
+                sock.send(s.c_str());
                 int lenght = sock.recv(msg, packet_size);
                 if (lenght <= 0) 
-                    break;
+                break;
                 msg[--lenght] = '\0';
-                do{
-                    std::cout << msg;
-                    std::cin >> s;
-                    sock.send(s.c_str());
-                    int lenght = sock.recv(msg, packet_size);
-                    if (lenght <= 0) 
-                    break;
-                    msg[--lenght] = '\0';
-                }while(strncmp(msg, "ok", sizeof("ok")));
+            }while(strncmp(msg, "ok", sizeof("ok")));
             }
         }
     }

@@ -60,8 +60,8 @@ client:
 server:
 	$(SS)$(MAKE) -s --no-print-directory -j 4 target=$(server_bin) defs+=SERVER compile
 
-run_server: client ; $(server_bin)
-run_client: compile ; $(client_bin)
+run_server: server ; $(server_bin)
+run_client: client ; $(client_bin)
 
 $(target): $(object)
 	$(SS)echo Compiling $@ from $^
