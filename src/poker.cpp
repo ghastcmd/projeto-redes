@@ -1,5 +1,7 @@
 #include "pch.hpp"
 #include "poker.hpp"
+
+#if !defined(CLIENT)
 #include "tables.h"
 
 using namespace std;
@@ -170,7 +172,6 @@ Hand::~Hand(){
     discarAll();
 }
 
-[[deprecated]]
 Jogador::Jogador(int p){
     socket_index = p;
     dinheiro = 20000;
@@ -471,18 +472,14 @@ Jogadores * Poker::nextJog(Jogadores *turn){
 void Poker::newGame(){
     dealer();
     int totPot = 0;
-    puts("this is after the dealer");
     if(rodada(200, &totPot, true))
         return;
-    puts("this is after the first round");
     mesa.pick(deck);
     if(rodada(200, &totPot))
         return;
-    puts("this is after the second round");
     mesa.pick(deck);
     if(rodada(200, &totPot))
         return;
-    puts("this is after the third round");
     checkWinner(totPot);
 }
 
@@ -496,3 +493,5 @@ Poker::~Poker(){
         delete smallBlind;
     }
 }
+
+#endif
