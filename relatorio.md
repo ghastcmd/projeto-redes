@@ -28,7 +28,9 @@ Para cada nova rodada é chamada a função de membro `newGame()` no objeto `Pok
 
 ## Como rodar
 
-o programa main será o servidor, basta rodá-lo para que o jogo seja criado e n jogadores possam se conectar e jogar o jogo.
+O cliente e o servidor são aplicações diferentes, para compilar um ou o outro é necessário definir o define `CLIENT` nos arquivos de código fonte do **C++**. No Makefile isso já é realizado automaticamente.
+
+Cada jogador deverá rodar o programa compilado com as diretrizes de cliente. Ao ser iniciado, o programa pedirá o nome do **jogador** que deverá ser escrito e enviado pelo terminal da aplicação. 
 Cada jogador deverá rodar o programa cliente, será pedido o nome do jogador onde o jogador irá digitar no terminal a informação e depois que todos os jogadores se conectarem as rodadas se iniciam, o servidor mandará mensagens para cada jogador atualizando-os de suas cartas e das açoes de outros jogadores. No turno do jogador específico será pedido para ele digitar um número (0 (sair da rodada, jogador será só observador sem possibilidade de receber o pot), 1 (pagar o valor da aposta) ou 2(aumentar a aposta)) para que ele tome uma ação, caso ele escolha a opção 2 (aumentar a aposta) será pedido qual o valor que ele deseja aumentar (0 seria apostar todo o dinheiro). Ao final de cada rodada o jogador que tiver a melhor mão leva o pot e uma nova rodada é iniciada.
 
 ## O que poderia ser feito para implementar:
