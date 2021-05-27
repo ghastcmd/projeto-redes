@@ -16,9 +16,9 @@ int main() {
       if (lenght <= 0) 
         break;
       msg[--lenght] = '\0';
-      if (!strncmp(string(msg), "close", sizeof("close")))
+      if (!strncmp(std::string(msg), "close", sizeof("close")))
         break;
-      if (strncmp(string(msg), "recv", sizeof("recv")))
+      if (strncmp(std::string(msg), "recv", sizeof("recv")))
         std::cout << msg << "\n";
       else{
         int i;
