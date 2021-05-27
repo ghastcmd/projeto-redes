@@ -21,6 +21,10 @@ Porém, como estamos utilizando os mesmos arquivos para compilar os dois binári
 
 Existe ainda a possibilidade de compilar e executar a aplicação em um mesmo comando, com as tags `run_client` e `run_server`. As mesmas regras de limpeza de intermediários se aplicam a essas tags. Ex.: `make clean run_client` e `make clean run_server`.
 
+Quando os binários são compilados, eles são armazenados separadamente, o cliente e o servidor, respectivamente, ficam em bin/client.out e bin/server.out.
+
+No servidor, é possível passar um único argumento, que é um inteiro que reprensenta a quantidade de jogadores que terá no jogo. Por padrão esse número é 2.
+
 **Ressalva Importante**
 
 * É essencial de que a **conexão não seja perdida** durante o decorrer da partida, pois **não existe função de reconexão** na parte do servidor, ou seja, caso a conexão à algum cliente seja perdida, o servidor encerrará suas atividades.
