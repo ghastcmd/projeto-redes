@@ -78,3 +78,5 @@ Uma possível implementação seria que os jogadores pudessem se conectar a qual
 Calcular a melhor mão foi uma busca grande, mas achamos um algorítimo que registrou o ranking de cada grupo de 7 cartas em lookup table para facilitar o calculo da melhor mão.
 
 Uma outra grande dificuldade foi a implementação de sockets no sistema Windows, o que infelizmente acarretou no abandono da implementação da aplicação na plataforma, pois, percebeu-se que na plataforma Linux a implementação de sockets foi bem mais sucinta e previsível, além de consistente.
+
+Outro dificuldade é o fato de que quando o servidor enviava varias mensagens seguidas (send) o cliente recebia (recv) as mensagens juntas no mesmo char*, então era nescessário separar as mensagens posteriormente  
