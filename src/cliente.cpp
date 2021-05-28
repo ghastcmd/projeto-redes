@@ -33,6 +33,10 @@ void client_fn() {
         if (strncmp(msg + lenght - sizeof("recv") + 1, "recv", sizeof("recv")))
             std::cout << msg << "\n";
         else{
+            if (lenght > sizeof("recv")){
+                msg[lenght - sizeof("recv")] = '\0';
+                std::cout << msg << "\n";
+            }
             int i;
             do{
                 std::cin >> s;
