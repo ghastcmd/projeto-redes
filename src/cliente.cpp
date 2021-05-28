@@ -29,11 +29,11 @@ void client_fn() {
         msg[--lenght] = '\0';
         if (!strncmp(msg + lenght - sizeof("close") + 1, "close", sizeof("close")))
             break;
-                
+        
         if (strncmp(msg + lenght - sizeof("recv") + 1, "recv", sizeof("recv")))
             std::cout << msg << "\n";
         else{
-            if (lenght > sizeof("recv")){
+            if (lenght > (int)sizeof("recv")){
                 msg[lenght - sizeof("recv")] = '\0';
                 std::cout << msg << "\n";
             }
