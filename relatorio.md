@@ -4,7 +4,7 @@ subtitle: Relatório de explicação e documentação da aplicação
 author: |
     | Eduardo Brasil Araujo
     | Cesar Henrique Cícero
-geometry: margin=3cm 
+geometry: margin=2cm 
 ---
 
 # Como Executar a Aplicação
