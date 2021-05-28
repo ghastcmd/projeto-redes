@@ -14,7 +14,7 @@ void dump_str(const char* str)
 void client_fn() {
     conn::client sclient("127.0.0.1", 2222);
     auto sock = sclient.connect();
-    constexpr size_t packet_size = 255;
+    constexpr size_t packet_size = 2550;
     char msg[packet_size] {0};
     int lenght = sock.recv(msg, packet_size);
     msg[--lenght] = '\0';
